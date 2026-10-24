@@ -3683,9 +3683,11 @@ function editLocationForPrompt(loc){
  const m=String(loc||'').trim().toUpperCase().match(/^(A\d+)_(RF|LF|RS|LS|F|U|VEG)(\d+[A-Z]?)?(?:_S(\d+))?$/);
  if(!m)return String(loc||'');
  const aisle=m[1],kind=m[2],num=m[3]||'',level=m[4];
- const readable=kind==='U'&&aisle==='A5'?'LEFT SHELF':kind==='U'&&aisle==='A6'?'SHELF':
+ const oldA5=kind==='U'&&aisle==='A5'&&!!num;
+ const readable=oldA5?(+num<=2?'FRIDGE':'LEFT SHELF'):kind==='U'&&aisle==='A6'?'SHELF':
   ({RF:'RIGHT FREEZER',LF:'LEFT FREEZER',RS:'RIGHT SHELF',LS:'LEFT SHELF',F:'FRIDGE',U:'UNIT',VEG:'FRUIT & VEGETABLES'})[kind];
- return readable+(num?' '+num:'')+(level?' LEVEL '+level:'');
+ const shown=oldA5?(+num<=2?+num:+num-2):num;
+ return readable+(shown?' '+shown:'')+(level&&!(aisle==='A5'&&(kind==='U'||kind==='LS'))?' LEVEL '+level:'');
 }
 function parseManualLocation(aisle,entry){
  let t=String(entry||'').trim().toUpperCase().replace(/[–—]/g,'-');
