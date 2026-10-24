@@ -3812,7 +3812,13 @@ function locationDisplay(loc,manualAisle){
  // A5's legacy U1–U18 codes mean LEFT SHELF 1–18 to the shopper.
  // A6's legacy U1–U12 codes mean SHELF 1–12, not UNIT 1–12.
  const type=kind==='U'&&aisle==='A5'?'LEFT SHELF':kind==='U'&&aisle==='A6'?'SHELF':types[kind];
- return {aisle,type,label:aisle==='A5'||aisle==='A6'?'LOCATION':'UNIT',number:m[3]||'',shelf:m[4]||'',levelLabel:kind==='U'&&(aisle==='A5'||aisle==='A6')?'LEVEL':'SHELF'};
+ return {aisle,type,label:aisle==='A5'||aisle==='A6'?'LOCATION':'UNIT',number:m[3]||'',shelf:(aisle==='A5'&&(kind==='U'||kind==='LS'))?'':m[4]||'',levelLabel:kind==='U'&&(aisle==='A5'||aisle==='A6')?'LEVEL':'SHELF'};
+}
+// Customer-facing A5 labels: preserve source location codes and route internally.
+function shopLocationLabel(loc){
+ const s=String(loc||'').trim().toUpperCase();
+ const m=s.match(/^A5_(?:U|LS)(\d+)(?:_S\d+)?$/);
+ return m?'A5 LEFT SHELF '+m[1]:s;
 }
 function draw(){
  const out=$('cards'),bar=$('progress'),box=$('summary');out.innerHTML='';
@@ -3837,10 +3843,18 @@ function draw(){
   }else{
     body.append(el('div','subhead','AVAILABLE SHOP LOCATIONS'));
     const locs=el('div','locs');
-    for(const l of x.possible){const b=el('button',l===x.location?'selected':'',(l===x.location?'✓ ':'')+l);b.onclick=()=>chooseLocation(x.id,l);locs.append(b)}
+    // Collapse A5 shelf-height variants to one visible choice per left shelf.
+    const visibleLocations=new Set();
+    for(const l of x.possible){
+     const label=shopLocationLabel(l);if(visibleLocations.has(label))continue;
+     visibleLocations.add(label);
+     const selected=label===shopLocationLabel(x.location);
+     const b=el('button',selected?'selected':'',(selected?'✓ ':'')+label);
+     b.onclick=()=>chooseLocation(x.id,l);locs.append(b);
+    }
     if(!x.possible.length)locs.append(el('div','hint','Location not recorded. Press EDIT to enter one.'));
     body.append(locs);
-    if(x.possible.length>1)body.append(el('div','hint','Tap another location if needed.'));
+    if(visibleLocations.size>1)body.append(el('div','hint','Tap another location if needed.'));
   }
   const actions=el('div','actions');
   const yes=el('button','yes',x.status==='done'?'↩ REMOVE FROM TROLLEY':'✓ IN TROLLEY');
