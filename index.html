@@ -3514,7 +3514,8 @@ function matched(name){
   if(exactCode.length>1)return {group:null,choices:exactCode.slice(0,3)};
  }
 const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});return {group:null,choices:filtered.slice(0,3).map(x=>x.g)}}return {group:null,choices:[]}}
-function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const base=l.replace(/_S\d+$/,'');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
+function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();
+ l=l.replace(/^A5_U(\d+)(?=_S\d+$|$)/,(_,n)=>(+n<=2?'A5_F'+(+n):'A5_LS'+(+n-2)));if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const base=l.replace(/_S\d+$/,'');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
 function compare(a,b){const x=pos(a.location),y=pos(b.location);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2])||a.i-b.i}
 function rankChoices(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{
  const q=search.value.trim(),e=$('suggestions');e.replaceChildren();e.scrollTop=0;picked=null;
@@ -3774,8 +3775,10 @@ function locationDisplay(loc,manualAisle){
  const types={RF:'RIGHT FREEZER',LF:'LEFT FREEZER',RS:'RIGHT SHELF',LS:'LEFT SHELF',F:'FRIDGE',U:'UNIT',VEG:'FRUIT & VEGETABLES'};
  // A5's legacy U1–U18 codes mean LEFT SHELF 1–18 to the shopper.
  // A6's legacy U1–U12 codes mean SHELF 1–12, not UNIT 1–12.
- const type=kind==='U'&&aisle==='A5'?'LEFT SHELF':kind==='U'&&aisle==='A6'?'SHELF':types[kind];
- return {aisle,type,label:aisle==='A5'||aisle==='A6'?'LOCATION':'UNIT',number:m[3]||'',shelf:(aisle==='A5'&&(kind==='U'||kind==='LS'))?'':m[4]||'',levelLabel:kind==='U'&&(aisle==='A5'||aisle==='A6')?'LEVEL':'SHELF'};
+ const legacyA5=kind==='U'&&aisle==='A5'&&!!m[3];
+ const type=legacyA5?(+m[3]<=2?'FRIDGE':'LEFT SHELF'):kind==='U'&&aisle==='A6'?'SHELF':types[kind];
+ const number=legacyA5?String(+m[3]<=2?+m[3]:+m[3]-2):m[3]||'';
+ return {aisle,type,label:aisle==='A5'||aisle==='A6'?'LOCATION':'UNIT',number,shelf:(aisle==='A5'&&(kind==='U'||kind==='LS'))?'':m[4]||'',levelLabel:kind==='U'&&(aisle==='A5'||aisle==='A6')?'LEVEL':'SHELF'};
 }
 // Customer-facing A5 labels: preserve source location codes and route internally.
 function shopLocationLabel(loc){
