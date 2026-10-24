@@ -3701,12 +3701,12 @@ function parseManualLocation(aisle,entry){
  if(words==='VEG'||words.startsWith('FRUIT'))return aisle+'_VEG';
  if(!n)return String(entry||'').trim();
  let code;
- if(words==='LEFT SHELF')code=aisle==='A5'?'U':'LS';
+ if(words==='LEFT SHELF')code='LS';
  else if(words==='RIGHT SHELF')code='RS';
  else if(words==='LEFT FREEZER')code='LF';
  else if(words==='RIGHT FREEZER')code='RF';
  else if(words==='FRIDGE')code='F';
- else if(words==='SHELF'||words==='SHELVES')code=aisle==='A6'||aisle==='A5'?'U':'LS';
+ else if(words==='SHELF'||words==='SHELVES')code=aisle==='A6'?'U':'LS';
  else code='U';
  return aisle+'_'+code+n+(level?'_S'+level:'');
 }
