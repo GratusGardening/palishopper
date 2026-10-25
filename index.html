@@ -3890,6 +3890,27 @@ function rankChoices(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{
  },90)}
 search.addEventListener('input',rankChoices);list.addEventListener('input',save);
 
+let searchScrollTimer;
+
+function keepSearchVisible() {
+  if (window.innerWidth > 800) return;
+
+  clearTimeout(searchScrollTimer);
+
+  searchScrollTimer = setTimeout(() => {
+    if (document.activeElement === search) {
+      search.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }, 150);
+}
+
+search.addEventListener('focus', keepSearchVisible);
+window.visualViewport?.addEventListener('resize', keepSearchVisible);
+
+
 // V2.1 basket cleanup runs only when CLEAN UP LIST is pressed; auto-save is unchanged.
 function basketNameFromLine(raw){
  const s=String(raw||'').trim();
