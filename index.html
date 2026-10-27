@@ -673,20 +673,34 @@ const INVENTORY=[
 // ===== A1 — LEFT FREEZERS =====
 
 // ------------------------------------------------------------------------------
-// A1_LF1
+// A1_LF1 — GREGGS IMAGE INVENTORY (ACTIVE — 12; LEFT-TO-RIGHT PHOTO ORDER)
 // ------------------------------------------------------------------------------
-  ["Greggs 2 Bacon & Cheese Wraps 194g","53854","A1_LF1"],
-  ["Greggs 2 Cheese & Onion Bakes 288g","53850","A1_LF1"],
-  ["Greggs 2 Chicken Bakes 306g","53851","A1_LF1"],
-  ["Greggs 2 Corned Beef Bakes 290g","54519","A1_LF1"],
-  ["Greggs 2 Margherita Pizzas 314g","40247","A1_LF1"],
-  ["Greggs 2 Pepperoni Pizzas 337g","40250","A1_LF1"],
-  ["Greggs 2 Sausage Bean & Cheese Melts 308g","53852","A1_LF1"],
-  ["Greggs 2 Steak Bakes 280g","66330","A1_LF1"],
-  ["Greggs 4 Sausage Rolls 427g","66338","A1_LF1"],
-  ["Greggs 4 Vegan Sausage Rolls 420g","78663","A1_LF1"],
   ["Greggs 8 Sausage Rolls 854g","76133","A1_LF1"],
+  ["Greggs 4 Sausage Rolls 427g","66338","A1_LF1"],
+  ["Greggs 2 Steak Bakes 280g","66330","A1_LF1"],
+  ["Greggs 2 Sausage Bean & Cheese Melts 308g","53852","A1_LF1"],
+  ["Greggs 2 Corned Beef Bakes 290g","54519","A1_LF1"],
+  ["Greggs 2 Chicken Bakes 306g","66336","A1_LF1"],
+  ["Greggs 2 Cheese & Onion Bakes 288g","53850","A1_LF1"],
+  ["Greggs 4 Vegan Sausage Rolls 420g","78663","A1_LF1"],
+  ["Greggs 2 Bacon & Cheese Wraps 194g","53854","A1_LF1"],
   ["Greggs 16 Mini Sausage Rolls 433g","57301","A1_LF1"],
+  ["Greggs 2 Pepperoni Pizzas 337g","40250","A1_LF1"],
+  ["Greggs 2 Margherita Pizzas 314g","40247","A1_LF1"],
+
+// A1_LF1 — ICELAND RANGE OVERSPILL (INACTIVE — 9)
+  // ["Greggs 12 Mini Steak Rolls 360g","88101","A1_LF1"],
+  // ["Greggs 12 Mozzarella & Cheddar Bites 300g","107435","A1_LF1"],
+  // ["Greggs 16 Mini Cheese & Onion Rolls 480g","88102","A1_LF1"],
+  // ["Greggs 16 Mini Festive Sausage Rolls 456g","107432","A1_LF1"],
+  // ["Greggs 2 Festive Bakes 312g","55917","A1_LF1"],
+  // ["Greggs 2 Scotch Pies 282g","63344","A1_LF1"],
+  // ["Greggs 2 Vegetable Bakes 310g","63343","A1_LF1"],
+  // ["Greggs 6 Milk Chocolate Cookies 420g","88097","A1_LF1"],
+  // ["Greggs Limited Edition 2 Katsu Chicken Bakes 316g","92733","A1_LF1"],
+
+// A1_LF1 — EXISTING HTML OVERSPILL (INACTIVE — 1 LEGACY CODE)
+  // ["Greggs 2 Chicken Bakes 306g","53851","A1_LF1"], // Old HTML code; verified Iceland product code is 66336.
 
 // ------------------------------------------------------------------------------
 // A1_LF2
@@ -3775,7 +3789,7 @@ const INVENTORY=[
   ["Mars 4 Pack Ice Cream Mars Bars","55142","A5_RF"],
   ["Mars 4 Pack Snickers Ice Cream","7386","A5_RF"],
   ["Myprotein 4 Vimto® Ice Lollies High Protein 440g","56669","A5_RF"],
-  ["VIVA Vanilla Ice Cream Flavour Milk 3 x 200ml","90700","A5_RF"],
+  // MOVED: VIVA Vanilla Ice Cream Flavour Milk 3 x 200ml | 90700 | EDIT UNDER A5_RS7
 
 // ===== A5 — RIGHT SHELVES =====
 
@@ -3842,8 +3856,8 @@ const INVENTORY=[
   ["Nesquik Milk Slice Choco Cacao 4 x 26g (104g)","58571","A5_RS6 / A5_RS8"],
   ["Nesquik Strawberry","45455","A5_RS6"],
   ["Slush Puppie Freeze & Squeeze","14225","A5_RS6"],
-  ["VIVA Chocolate Flavour Milk 3 x 200ml","88635","A5_RS6 / A5_RS8"],
-  ["VIVA Strawberry Flavour Milk 3 x 200ml","88634","A5_RS6 / A5_RS8"],
+  // MOVED: VIVA Chocolate Flavour Milk 3 x 200ml | 88635 | EDIT UNDER A5_RS7
+  // MOVED: VIVA Strawberry Flavour Milk 3 x 200ml | 88634 | EDIT UNDER A5_RS7
   // ALSO RECORDED HERE — edit the actual product row in the indicated section:
   //   Müller Bliss | 17690 | EDIT UNDER A4_F4_S1
 
@@ -3852,6 +3866,10 @@ const INVENTORY=[
 // ------------------------------------------------------------------------------
   ["Elm Spring Still Water Multipack","","A5_RS7"],
   ["Nestle Pure Life Water Multipack","","A5_RS7"],
+  ["VIVA Banana Flavour Mmmmilk 200ml","107328","A5_RS7"],
+  ["VIVA Chocolate Flavour Milk 3 x 200ml","88635","A5_RS7"],
+  ["VIVA Strawberry Flavour Milk 3 x 200ml","88634","A5_RS7"],
+  ["VIVA Vanilla Ice Cream Flavour Milk 3 x 200ml","90700","A5_RS7"],
   ["Yazoo Banana Milk Drink 1L","67631","A5_RS7"],
   ["Yazoo Chocolate","59071","A5_RS7"],
   ["Yazoo Strawberry Milk Drink 1L","59070","A5_RS7"],
@@ -3867,8 +3885,8 @@ const INVENTORY=[
   //   Iceland Vanilla Custard | 54325 | EDIT UNDER A2_LF4
   //   Nesquik Milk Slice Choco Cacao 4 x 26g (104g) | 58571 | EDIT UNDER A5_RS6
   //   Vimto Real Fruit Large Bottle 3L | 63984 | EDIT UNDER A5_RS2
-  //   VIVA Chocolate Flavour Milk 3 x 200ml | 88635 | EDIT UNDER A5_RS6
-  //   VIVA Strawberry Flavour Milk 3 x 200ml | 88634 | EDIT UNDER A5_RS6
+  //   VIVA Chocolate Flavour Milk 3 x 200ml | 88635 | EDIT UNDER A5_RS7
+  //   VIVA Strawberry Flavour Milk 3 x 200ml | 88634 | EDIT UNDER A5_RS7
 
 // ------------------------------------------------------------------------------
 // A5_RS
@@ -5252,31 +5270,95 @@ const INVENTORY=[
   ["Felix 12 Pack As Good As It Looks Meat Menus","53927","A6_U10"],
 
 // ------------------------------------------------------------------------------
-// A6_U11
+// A6_U11 — IMAGE INVENTORY (ACTIVE — 37 RECORDS; PHOTO-CHECKED)
 // ------------------------------------------------------------------------------
   ["Costa Coffee Barista Creations Creamy Cappuccino 6 x 17g (102g)","102289","A6_U11"],
   ["Kenco Cappuccino Instant Coffee Sachets x8","91036","A6_U11"],
+  ["Kenco Decaf Instant Coffee 95g","65483","A6_U11"],
+  ["Kenco Iced Hot Salted Caramel Latte Instant Coffee Sachets x8","102551","A6_U11"],
   ["Kenco Latte Instant Coffee Sachets x8","91035","A6_U11"],
   ["Kenco Limited Edition Iced Hot Dubai Chocolate Style Latte Coffee Sachets x8","105164","A6_U11"],
-  ["Maxwell House Cappuccino Instant Coffee Sachets x8","103623","A6_U11"],
-  ["Maxwell House Latte 8 x 12g (96g)","103624","A6_U11"],
+  ["Kenco Rich Instant Coffee 95g","91037","A6_U11"],
+  ["Kenco Smooth Instant Coffee 95g","9199","A6_U11"],
+  ["Maxwell House Rich Blend 200g","91600","A6_U11"],
   ["Nescafe 3in1 Original Instant Coffee Sachets 12 x 16g","103151","A6_U11"],
-  ["Nescafe Cappuccino Instant Coffee 7 x 15.5g Sachets","104513","A6_U11"],
+  ["Nescafé Alta Rica Instant Coffee 95g","90750","A6_U11"],
+  ["Nescafe Azera Americano Instant Coffee 75g","94361","A6_U11"],
   ["Nescafe Dolce Gusto Americano Intenso Coffee Pods x16 (16 Servings)","105307","A6_U11"],
   ["Nescafe Dolce Gusto Cappuccino Coffee Pods x16 (8 Servings)","62394","A6_U11"],
-  ["Nescafe Dolce Gusto Flat White Coffee Pods x16 (16 Servings)","81009","A6_U11"],
+  ["Nescafe Dolce Gusto Latte Macchiato Coffee Pods x16 (8 Servings)","62697","A6_U11"],
+  ["Nescafe Gold Blend Instant Coffee 190g","104600","A6_U11"],
   ["Nescafe Iced Coffee Espresso Concentrated Vanilla Flavour 500ml","104868","A6_U11"],
   ["Nescafe Latte Instant Coffee 7 x 18g Sachets","104517","A6_U11"],
+  ["Nescafe Original Decaf Instant Coffee 300g","87411","A6_U11"],
+  ["Nescafe Original Instant Coffee 100g","4037","A6_U11"],
   ["Nescafe Original Instant Coffee 300g","28542","A6_U11"],
-  ["Nescafe Vanilla Cookie Dough Latte 7 x 19.5g Sachets","106559","A6_U11"],
+  ["PG Tips 210 Original Black Tea Bags 609g","104252","A6_U11"],
+  ["PG Tips Original 80 Tea Bags 250g","100922","A6_U11"],
   ["Tassimo Costa Americano Coffee Pods x12","89038","A6_U11"],
   ["Tassimo Costa Latte Coffee Pods x6","89036","A6_U11"],
   ["Tassimo L'OR Latte Macchiato Coffee Pods x7","90644","A6_U11"],
+  ["Taylors of Harrogate Yorkshire Tea 210 Tea Bags 656g","104434","A6_U11"],
+  ["Tetley 300 Original Tea Bags 938g","107294","A6_U11"],
+  ["Tetley Decaf 120 Tea Bags 375g","65456","A6_U11"],
+  ["Tetley Original 120 Tea Bags 375g","20450","A6_U11"],
+  ["Tetley Pure Green 50 Tea Bags 100g","83184","A6_U11"],
+  ["Typhoo 240 Everyday Tea Bags - 160 + 50% FREE","89743","A6_U11"],
+  ["Typhoo One Cup 100 Everyday Tea Bags 200g","81026","A6_U11"],
+  ["Victoria Foods Quench Instant Lemon Tea 285g","52562","A6_U11"],
   ["Viva Semi-Skimmed Long-Life Milk 1L","54122","A6_U11"],
   ["Viva Skimmed Long-Life Milk 1L","54123","A6_U11"],
-  // ALSO RECORDED HERE — edit the actual product row in the indicated section:
-  //   Nescafé Caramel Latte | 104516 | EDIT UNDER A1_LS3
-  //   Nescafé Vanilla Latte | 104518 | EDIT UNDER A1_LS3
+  ["Yorkshire Tea 80 Tea Bags 250g","7838","A6_U11"],
+  // ALSO RECORDED HERE — EDIT ORIGINAL ACTIVE ROW AT FIRST LISTED LOCATION:
+  // Nescafé Caramel Latte Instant Coffee 7 x 17g Sachets | 104516 | EDIT UNDER A1_LS3 (A1_LS3 / A6_U11)
+  // Nescafé Vanilla Latte Instant Coffee 7 x 18.5g Sachets | 104518 | EDIT UNDER A1_LS3 (A1_LS3 / A6_U11)
+  // Other visible hot-drink products whose product codes need verifying remain pending in the Drive progress log.
+
+// A6_U11 — ICELAND RANGE OVERSPILL (INACTIVE — 37)
+  // ["Easytea 240 Foil Wrapped Teabags 696g","105862","A6_U11"],
+  // ["Easytea One Cup 100 Foil Wrapped Teabags 200g","105879","A6_U11"],
+  // ["Kenco Classic Chocolate Hazelnut Latte Instant Coffee Sachets x8","105853","A6_U11"],
+  // ["Kenco Classic Latte Instant Coffee Sachets x20","107115","A6_U11"],
+  // ["Kenco Flat White Instant Coffee Sachets x8","105854","A6_U11"],
+  // ["Kenco Iced Hot Salted Caramel Latte Instant Coffee Sachets x20","107116","A6_U11"],
+  // ["Kenco Iced Hot Vanilla Latte Instant Coffee Sachets x8","104442","A6_U11"],
+  // ["Kenco Millicano Cadbury Mocha Instant Coffee 250g","104446","A6_U11"],
+  // ["Kenco Millicano Smooth Latte Instant Coffee 220g","104445","A6_U11"],
+  // ["Nescafe 2in1 Instant Coffee Sachets 12 x 9g","103150","A6_U11"],
+  // ["Nescafe 3in1 Caramel Instant Coffee Sachets 12 x 16g","103152","A6_U11"],
+  // ["Nescafe 3in1 Original Instant Coffee Sachets 20 x 16g","103149","A6_U11"],
+  // ["Nescafe Cappuccino Instant Coffee 12 x 15.5g Sachets","84168","A6_U11"],
+  // ["Nescafe Cappuccino Unsweetened Taste Instant Coffee 7 x 14.2g Sachets","104515","A6_U11"],
+  // ["Nescafe Dolce Gusto Café Au Lait Coffee Pods x16 (16 Servings)","62698","A6_U11"],
+  // ["Nescafé Gold Blend Decaf Instant Coffee 95g","105851","A6_U11"],
+  // ["Nescafé Gold Blend Instant Coffee 95g","104332","A6_U11"],
+  // ["Nescafe Iced Coffee Espresso Concentrated Caramel Flavour 500ml","104869","A6_U11"],
+  // ["Nescafe Iced Coffee Latte 750ml","104337","A6_U11"],
+  // ["Nescafe KitKat Latte 7 x 21g Sachets","103718","A6_U11"],
+  // ["Nescafe Latte Instant Coffee 12 x 18g Sachets","106496","A6_U11"],
+  // ["Nescafé Lion Mocha Flavour 7 x 20g (140g)","107135","A6_U11"],
+  // ["Nescafe Peppermint Aero Mocha 7 x 19g Sachets","102630","A6_U11"],
+  // ["Tassimo Kenco Americano Grande XL Coffee Pods x16","90645","A6_U11"],
+  // ["Tassimo Kenco Flat White Coffee Pods x8","90605","A6_U11"],
+  // ["Taylors of Harrogate Yorkshire Gold 80 Tea Bags 250g","41780","A6_U11"],
+  // ["Taylors of Harrogate Yorkshire Tea Decaf 80 Tea Bags 250g","87295","A6_U11"],
+  // ["Taylors of Harrogate Yorkshire Tea Malty Biscuit Brew 40 Tea Bags 112g","105153","A6_U11"],
+  // ["Tetley 240 Original Tea Bags 750g","58080","A6_U11"],
+  // ["Tetley 40 Original Tea Bags 125g","14343","A6_U11"],
+  // ["Tetley 50 Earl Grey Tea Bags 125g","101285","A6_U11"],
+  // ["Tetley Camomile Tea Bags x40","101283","A6_U11"],
+  // ["Tetley Green Tea Lemon Tea Bags x50","100560","A6_U11"],
+  // ["Tetley Original 400 Tea Bags 1.25kg","90684","A6_U11"],
+  // ["Tetley Peppermint Tea Bags x40","83176","A6_U11"],
+  // ["Viva Long-Life Whole Milk 1L","73816","A6_U11"],
+  // ["Yorkshire Tea Cherry Bakewell Brew 40 Tea Bags 112g","105154","A6_U11"],
+
+// A6_U11 — EXISTING HTML OVERSPILL (INACTIVE — 5; NOT PHOTO-CONFIRMED)
+  // ["Maxwell House Cappuccino Instant Coffee Sachets x8","103623","A6_U11"],
+  // ["Maxwell House Latte 8 x 12g (96g)","103624","A6_U11"],
+  // ["Nescafe Cappuccino Instant Coffee 7 x 15.5g Sachets","104513","A6_U11"],
+  // ["Nescafe Dolce Gusto Flat White Coffee Pods x16 (16 Servings)","81009","A6_U11"],
+  // ["Nescafe Vanilla Cookie Dough Latte 7 x 19.5g Sachets","106559","A6_U11"],
 
 // ------------------------------------------------------------------------------
 // A6_U12
@@ -5320,6 +5402,18 @@ const INVENTORY=[
   ["Coca-Cola Zero","4725","A6_U13"],
   ["Dr Pepper Cans Multipack 24 x 330ml","4818","A6_U13"],
   ["White Rock Refreshing Still Spring Water 24 x 500ml","76738","A6_U13"],
+  // A6_U13 — UNCONFIRMED POSSIBLE 24-PACK DISPLAY / BY TILL — ICELAND RANGE OVERS PILL (INACTIVE)
+  // Craig supplied these product-page codes on 27 Oct; exact placement at A6_U13 or by the till remains unverified.
+  // ["7UP Zero Sugar Free Lemon & Lime Cans 24 x 330ml","95347","A6_U13"],
+  // ["Coca-Cola Zero Sugar 24 x 330ml","43180","A6_U13"],
+  // ["Diet Coke 24 x 330ml","3147","A6_U13"],
+  // ["Dr Pepper 24 x 330ml","41079","A6_U13"],
+  // ["Dr Pepper Zero 24 x 330ml","71105","A6_U13"],
+  // Pepsi Max 24x330ml | 47908 | ALREADY ACTIVE UNDER A3_LS7 / A3_S8, possible A6_U13 to verify.
+  // Pepsi Cola 24x330ml | 94622 | ALREADY ACTIVE UNDER A3_LS8 / A3_LS9, possible A6_U13 to verify.
+  // Tango District Orange 24x330ml | 71402 | ALREADY ACTIVE UNDER A3_RS1, possible A6_U13 to verify.
+  // Original A6_U13 codes 4835, 4722, 4725, 4818 need verification before any code replacement.
+
 
 // ------------------------------------------------------------------------------
 // A6_U
