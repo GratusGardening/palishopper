@@ -204,16 +204,16 @@ const INVENTORY=[
 ["Iceland Ready Cooked 4 Flame Grilled Shawarma Chicken Skewers 340g","47364","A1_RF3"],
 ["Iceland Ready Cooked 4 Flame Grilled Salt & Chilli Chicken Skewers 340g","47321","A1_RF3"],
 ["Iceland Ready Cooked 4 Garlic & Herb Chicken Skewers 340g","49101","A1_RF3"],
-["Iceland Ready Cooked 4 Peri Peri Chicken Skewers 340g","49224","A1_RF3"],
+// ["Iceland Ready Cooked 4 Peri Peri Chicken Skewers 340g","49224","A1_RF3"],
 ["Iceland Ready Cooked 4 Sweet & Sour Glazed Chicken Skewers 340g","12160","A1_RF3"],
 ["Iceland Ready Cooked 4 Sweet Chilli Glazed Chicken Skewers 340g","12157","A1_RF3"],
 ["Iceland Ready Cooked 4 Teriyaki Glazed Chicken Skewers 340g","12161","A1_RF3"],
 ["Iceland Ready Cooked Flame Grilled 4 Tandoori Chicken Skewers 340g","49225","A1_RF3"],
-["Iceland Ready Cooked Hot & Spicy Chicken Skewers 340g","47277","A1_RF3"],
+// ["Iceland Ready Cooked Hot & Spicy Chicken Skewers 340g","47277","A1_RF3"],
 
 // A1_RF3 — ICELAND RANGE OVERSPILL (INACTIVE — FOUR CANDIDATES)
-// ["Iceland 4 BBQ Chicken Skewers with Peppers & Onions 340g","18407","A1_RF3"],
-// ["Iceland 4 Chicken Breast Skewers with Peppers & Onions 340g","18406","A1_RF3"],
+["Iceland 4 BBQ Chicken Skewers with Peppers & Onions 340g","18407","A1_RF3"],
+["Iceland 4 Chicken Breast Skewers with Peppers & Onions 340g","18406","A1_RF3"],
 // ["Iceland Ready Cooked Hoisin Chicken Skewers 340g","93413","A1_RF3"],
 // ["Iceland Ready Cooked Tikka Chicken Skewers 340g","40215","A1_RF3"],
 
@@ -5455,6 +5455,31 @@ function rememberLocation(x){if(x.location){overrides[overrideKey(x)]={location:
 
 function score(input,name){const q=tokens(input),p=tokens(name),a=new Set(q),b=new Set(p);let common=0;for(const t of a){if(b.has(t))common++;else for(const v of b){if((t.length>=3&&v.length>=3)&&(v.includes(t)||t.includes(v))){common+=.8;break}}}const nq=normalize(input),np=normalize(name);const coverage=common/Math.max(a.size,b.size,1);return coverage+(np.startsWith(nq)?1:0)+(np.includes(nq)?.22:0)}
 function hasWrongSize(a,b){const x=tokens(a).filter(t=>/^[0-9]+(?:g|kg|ml|l|litres|pack|pk)$/.test(t)),y=new Set(tokens(b));return x.some(t=>!y.has(t))}
+function skewerKey(value){
+ const words=tokens(value);
+ if(!words.some(w=>w==='skewer'||w==='skewers'))return '';
+ const ignore=new Set(['iceland','ready','cooked','4','4pk','pk','pack']);
+ return words.filter(w=>!ignore.has(w)).map(w=>({skewer:'skewers',peppers:'pepper',onions:'onion'}[w]||w)).join(' ');
+}
+function matchSkewers(name){
+ const key=skewerKey(name);
+ if(!key)return null;
+ const exact=groups.filter(g=>skewerKey(g.name)===key);
+ if(exact.length===1)return {group:exact[0],choices:[]};
+ if(exact.length>1)return {group:null,choices:exact.slice(0,3)};
+ const keyWords=key.split(' ');
+ const sizes=keyWords.filter(w=>/^\d+(?:g|kg|ml|l)$/.test(w));
+ const generic=new Set(['chicken','skewers','with','and']);
+ const distinct=keyWords.filter(w=>w.length>=3&&!generic.has(w)&&!sizes.includes(w));
+ const scored=groups.filter(g=>{
+  const candidate=skewerKey(g.name);
+  if(!candidate)return false;
+  const words=new Set(candidate.split(' '));
+  return sizes.every(w=>words.has(w))&&distinct.every(w=>words.has(w));
+ }).map(g=>({g,s:score(name,g.name)})).sort((a,b)=>b.s-a.s||a.g.name.localeCompare(b.g.name));
+ if(scored.length===1&&scored[0].s>.90&&!hasWrongSize(name,scored[0].g.name))return {group:scored[0].g,choices:[]};
+ return {group:null,choices:scored.slice(0,3).map(x=>x.g)};
+}
 function matched(name){
  const cleaned=String(name||'').trim();
  if(/^\d{3,}$/.test(cleaned)){
@@ -5465,6 +5490,7 @@ function matched(name){
   if(exactCode.length===1)return {group:exactCode[0],choices:[]};
   if(exactCode.length>1)return {group:null,choices:exactCode.slice(0,3)};
  }
+const skewerMatch=matchSkewers(name);if(skewerMatch)return skewerMatch;
 const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});return {group:null,choices:filtered.slice(0,3).map(x=>x.g)}}return {group:null,choices:[]}}
 function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const base=l.replace(/_S\d+$/,'');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
 function compare(a,b){const x=pos(a.location),y=pos(b.location);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2])||a.i-b.i}
@@ -6130,6 +6156,6 @@ $('inventoryFile').onchange=async e=>{const f=e.target.files?.[0];e.target.value
  if(persistInventory())invMsg('Inventory edits imported. Original HTML remains unchanged.');
  }catch(err){invMsg('Could not import inventory backup: '+err.message)}};
 
-try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'{}');list.value=saved.text||'';if(Array.isArray(saved.items))items=saved.items;}catch{}draw();renderSavedLists();
+try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'{}');list.value=saved.text||'';if(Array.isArray(saved.items))items=saved.items.map(x=>x&&x.raw&&!x.selectedCode&&!x.manualLocation&&x.status!=='done'&&x.status!=='skip'?chooseMatch({raw:x.raw,qty:x.qty,i:x.i,id:x.id},x):x);}catch{}draw();renderSavedLists();
 if(location.protocol==='https:'&&'serviceWorker' in navigator){navigator.serviceWorker.register('./palishopper-sw.js').catch(()=>{});}
 </script></body></html>
