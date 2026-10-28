@@ -112,6 +112,30 @@
  #receiptTest .rt-paper{box-shadow:none!important;margin:0!important;padding:2mm 1mm!important;width:var(--rw)!important}
 }
 
+
+/* INDEXTEST — unified, uniform controls and legacy-A5 order fix. */
+#shopperUnifiedBottom{margin-top:15px}
+#shopperUnifiedBottom .saved-controls{display:grid;grid-template-columns:1fr;gap:9px;margin:12px 0}
+#shopperUnifiedBottom .saved-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+#shopperUnifiedBottom .saved-actions button,
+#shopperUnifiedBottom .saved-controls button{width:100%;min-width:0;min-height:48px;border:1.5px solid #b7d3c3;border-radius:10px;background:#fff;color:#065a2b;padding:10px 6px;font:bold 13px/1.25 Arial,sans-serif;text-align:center;white-space:normal;overflow-wrap:break-word}
+#shopperUnifiedBottom .saved-controls button,
+#shopperUnifiedBottom #shareShoppingListBottom,
+#shopperUnifiedBottom #rtPrint{color:white;background:#008633;border-color:#008633}
+#shopperUnifiedBottom #deleteNamedListBottom{color:#a21530;border-color:#e7bfca;background:#fff}
+#shopperUnifiedBottom .saved-controls select{width:100%;max-width:100%;min-width:0;min-height:48px;font-size:13px}
+#shopperUnifiedBottom #receiptTest{border:0;border-top:1px solid #c5dccd;border-radius:0;margin:15px 0 0;padding:14px 0 0;box-shadow:none;background:transparent}
+#shopperUnifiedBottom #receiptTest h2{font-size:16px;color:#095b30}
+#shopperUnifiedBottom .rt-controls{justify-content:flex-start;gap:8px}
+#shopperUnifiedBottom .rt-controls select,#shopperUnifiedBottom .rt-controls input{max-width:145px}
+@media print {
+ main.app > :not(#shopperUnifiedBottom){display:none!important}
+ main.app > #shopperUnifiedBottom{display:block!important;margin:0!important;padding:0!important;border:0!important;background:#fff!important}
+ #shopperUnifiedBottom > :not(#receiptTest){display:none!important}
+ #shopperUnifiedBottom #receiptTest{display:block!important;padding:0!important;margin:0!important;border:0!important}
+ #shopperUnifiedBottom #receiptTest > :not(.rt-paper-wrap){display:none!important}
+}
+
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head><body><main class="app"><div id="testModeBanner" role="status" style="background:#fff2b6;color:#312000;font:bold 16px/1.4 Arial,sans-serif;text-align:center;border:3px solid #d19b00;border-radius:12px;padding:12px;margin:5px 0 12px">🧪 PALiSHoPPER INDEXTEST — CHANGES HERE DO NOT UPDATE THE LIVE HOME PAGE</div>
@@ -145,13 +169,30 @@
 
 
 <details class="photo"><summary>📷 Photo to text (optional)</summary><p>Choose a screenshot or take a photo. Check the recognized text before adding anything to your list.</p><div class="photorow"><button id="photoCamera">📸 TAKE PHOTO</button><button id="photoChoose">🖼️ CHOOSE PHOTO</button></div><input type="file" id="camera" accept="image/*" capture="environment" hidden><input type="file" id="photos" accept="image/*" multiple hidden><p id="ocrMessage"></p><div id="ocrReview" hidden><textarea id="ocrText" aria-label="Review scanned text"></textarea><button id="ocrAdd">ADD TEXT TO LIST</button></div></details>
-<section class="saved-list-panel" aria-label="Saved shopping lists at end of page">
-  <h2>📋 MY SAVED SHOPPING LISTS</h2>
-  <p>Give each list any name you like — Quick Shop, Weekly Shop, School Shop or anything else. Finishing a shop will not delete your saved lists.</p>
-  <div class="saved-controls"><button id="saveNamedListBottom" type="button">💾 SAVE CURRENT LIST</button><select id="savedListSelectBottom" aria-label="Choose a saved shopping list at bottom"><option value="">No saved lists yet</option></select></div>
-  <div class="saved-actions"><button type="button" id="openNamedListBottom">OPEN</button><button type="button" id="renameNamedListBottom">RENAME</button><button type="button" id="copyNamedListBottom">COPY LIST</button><button type="button" id="exportNamedListBottom">EXPORT .TXT</button><button type="button" id="importNamedListBottom">IMPORT BACKUP</button><button type="button" id="deleteNamedListBottom">DELETE</button></div>
-  <input type="file" id="importNamedFile" accept=".txt,.json,text/plain,application/json" hidden aria-label="Choose saved shopping list file to import">
-  <p class="saved-note">Choose any name for a list. Saved lists and location corrections stay on this device until browser data is cleared. EXPORT downloads a readable .TXT list you can import again.</p>
+<section class="saved-list-panel shopper-bottom-unified" id="shopperUnifiedBottom" aria-label="Saved lists, sharing and mini-printer report">
+  <h2>🛒 MY SAVED SHOPPING LISTS & REPORT</h2>
+  <p>Save or open lists, share your current shopping report, or print with the compact stencil layout. Sharing uses your phone's normal sharing menu.</p>
+  <div class="saved-controls"><button id="saveNamedListBottom" type="button">💾 SAVE CURRENT LIST</button><select id="savedListSelectBottom" aria-label="Choose a saved shopping list"><option value="">No saved lists yet</option></select></div>
+  <div class="saved-actions">
+    <button type="button" id="openNamedListBottom">OPEN</button>
+    <button type="button" id="renameNamedListBottom">RENAME</button>
+    <button type="button" id="copyNamedListBottom">COPY LIST</button>
+    <button type="button" id="shareShoppingListBottom">📤 SHARE</button>
+    <button type="button" id="importNamedListBottom">IMPORT BACKUP</button>
+    <button type="button" id="deleteNamedListBottom">DELETE</button>
+    <button type="button" id="rtShareImage">SHARE IMAGE</button>
+    <button type="button" id="rtPrint">PRINT</button>
+  </div>
+  <input type="file" id="importNamedFile" accept=".txt,.json,text/plain,application/json" hidden aria-label="Choose saved shopping list backup">
+  <p class="saved-note">SHARE sends plain text without the trolley graphic. SHARE IMAGE preserves the trolley and tick boxes. PRINT uses your phone's printing controls. Saved lists remain on this device.</p>
+  <section id="receiptTest" aria-label="Shopping receipt preview">
+   <h2>SHOPPING REPORT PREVIEW</h2>
+   <p>✔ In trolley: marked and location shown. □ Not in trolley: unticked and location left blank, ready to buy elsewhere.</p>
+   <div class="rt-controls"><label for="rtSize">PAPER</label><select id="rtSize"><option value="58">58mm</option><option value="80">80mm</option></select><label for="rtName">TITLE</label><input id="rtName" value="MY SHOPPING LIST" maxlength="40"></div>
+   <p id="rtMessage" role="status"></p>
+   <div class="rt-paper-wrap"><div class="rt-paper" id="rtPaper" aria-label="Shopping receipt preview"></div></div>
+   <p>Includes date and time. Only this INDEXTEST page is being edited.</p>
+  </section>
 </section>
 <div id="bottomNotice" class="notice" role="status" hidden></div>
 <details class="inventory-edit-panel" id="inventoryEditor"><summary>📝 EDIT PRODUCT INVENTORY (LOCAL)</summary>
@@ -165,15 +206,7 @@
 <input id="inventoryFile" hidden type="file" accept=".json,application/json"><div id="inventoryMessage" role="status"></div>
 </details>
 
-<section id="receiptTest">
-<h2>🛒 PALiSHoPPER SHARE / PRINT TEST</h2>
-<p>Picked = ✔ with shop location. Not picked or skipped = empty box and BLANK location, for shopping at Asda or elsewhere. Date and time are included. Choose 58mm or 80mm for your mini printer.</p>
-<div class="rt-controls"><label for="rtSize">PAPER</label><select id="rtSize"><option value="58">58mm</option><option value="80">80mm</option></select><label for="rtName">TITLE</label><input id="rtName" value="MY SHOPPING LIST" maxlength="40"></div>
-<div class="rt-controls"><button type="button" id="rtRefresh">↻ REFRESH</button><button type="button" id="rtShare">📤 SHARE (RAWBT)</button><button type="button" id="rtShareImage">📤 SHARE STENCIL IMAGE</button><button type="button" id="rtPrint">🖨 PRINT</button></div>
-<p id="rtMessage" role="status"></p>
-<div class="rt-paper-wrap"><div class="rt-paper" id="rtPaper" aria-label="Live shopping receipt preview"></div></div>
-<p>TEST COPY ONLY — live PALiSHoPPER remains unchanged. SHARE uses Android's normal share menu; SHARE STENCIL IMAGE retains the graphical trolley and ticks if your printer app accepts images.</p>
-</section>
+
 
 <div class="footer">PALiSHoPPER · Not affiliated with Iceland's checkout.<br>Items are saved on this device. Store locations need checking in store.</div>
 </main><script>
@@ -5586,7 +5619,7 @@ function matched(name){
  }
 const skewerMatch=matchSkewers(name);if(skewerMatch)return skewerMatch;
 const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});const sameType=filtered.map(x=>x.g).filter(g=>!productKind(name)||productKind(g.name)===productKind(name)).filter(g=>!hasWrongSize(name,g.name)).slice(0,3);return {group:null,choices:sameType.length?sameType:closeAlternatives(name)}}return {group:null,choices:closeAlternatives(name)}}
-function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const base=l.replace(/_S\d+$/,'');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
+function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const originalBase=l.replace(/_S\d+$/,'');const base=originalBase.replace(/^A5_U(?=\d)/,'A5_LS');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
 function compare(a,b){const unlocatedA=!a.location&&!a.manualLocation,unlocatedB=!b.location&&!b.manualLocation;if(unlocatedA!==unlocatedB)return unlocatedA?1:-1;const x=pos(a.location),y=pos(b.location);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2])||a.i-b.i}
 // Search suggestions only: favour complete words and all query terms over partial matches.
 // This does not change the separate inventory/walkthrough matching algorithm.
@@ -5905,6 +5938,7 @@ function shopLocationLabel(loc){
  return m?'A5 LEFT SHELF '+m[1]:s;
 }
 function draw(){
+ items.sort(compare); // Keep legacy A5_U positions and edited locations in actual walk order.
  const out=$('cards'),bar=$('progress'),box=$('summary');out.innerHTML='';
  $('finishShop').hidden=!items.length;
  if(!items.length){bar.hidden=true;box.hidden=true;return}
@@ -6090,7 +6124,7 @@ $('openNamedList').onclick=openNamedList;
 for(const [id,func] of [
  ['saveNamedList',saveNamedList],['openNamedList',openNamedList],
  ['renameNamedList',renameNamedList],['deleteNamedList',deleteNamedList],
- ['exportNamedList',exportNamedList]
+
 ])$(id+'Bottom').onclick=func;
 $('copyNamedListBottom').onclick=async()=>{
  const n=namedSelected();if(!n){notify('Choose a saved list to copy.');return;}
@@ -6303,14 +6337,14 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
   return canvas;
  }
  const message=x=>q('rtMessage').textContent=x;
- q('rtRefresh').onclick=()=>{refresh();message('Report refreshed with current trolley status.')};
  q('rtName').oninput=refresh;q('rtSize').onchange=refresh;
  q('rtPrint').onclick=()=>{if(!items.length){message('Add products above before printing.');return}refresh();window.print()};
- q('rtShare').onclick=async()=>{
+ q('shareShoppingListBottom').onclick=async()=>{
   if(!items.length){message('Add products above before sharing.');return}
-  try{const t=textReport();if(navigator.share)await navigator.share({title:'PALiSHoPPER Shopping Report',text:t});
-  else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(t);message('Share not available, report copied.');}
-  else message('Sharing needs a supported browser / HTTPS.');}
+  const t=textReport(); // Text-only shopping report: no trolley image or app-specific branding.
+  try{if(navigator.share)await navigator.share({title:'Shopping List',text:t});
+  else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(t);message('Sharing unavailable. Text copied to clipboard instead.');}
+  else message('Native sharing is unavailable here. Use COPY LIST instead.');}
   catch(e){if(e.name!=='AbortError')message('Could not share: '+e.message)}
  };
  q('rtShareImage').onclick=async()=>{
@@ -6318,7 +6352,7 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
   try{const canvas=imageCanvas(),blob=await new Promise(done=>canvas.toBlob(done,'image/png'));
    if(!blob)throw Error('Image unavailable');const file=new File([blob],'PALiSHoPPER_print_'+Date.now()+'.png',{type:'image/png'});
    if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'PALiSHoPPER Shopping Report'});return}
-   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=file.name;link.click();setTimeout(()=>URL.revokeObjectURL(url),3000);message('Image downloaded. Open in RawBT or your print app.');
+   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=file.name;link.click();setTimeout(()=>URL.revokeObjectURL(url),3000);message('Image downloaded. Open it in any compatible printer app.');
   }catch(e){if(e.name!=='AbortError')message('Could not share image: '+e.message)}
  };
  const previousDraw=draw;draw=function(){previousDraw();refresh();};
