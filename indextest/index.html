@@ -122,7 +122,8 @@
 #shopperUnifiedBottom .saved-controls button,
 #shopperUnifiedBottom #shareShoppingListBottom,
 #shopperUnifiedBottom #rtPrint{color:white;background:#008633;border-color:#008633}
-#shopperUnifiedBottom #deleteNamedListBottom{color:#a21530;border-color:#e7bfca;background:#fff}
+#shopperUnifiedBottom .saved-actions button:not(#deleteNamedListBottom){color:#fff;background:#008633;border-color:#008633}
+#shopperUnifiedBottom #deleteNamedListBottom{color:#a60e2e;border-color:#bd1c38;background:#fff4f4}
 #shopperUnifiedBottom .saved-controls select{width:100%;max-width:100%;min-width:0;min-height:48px;font-size:13px}
 #shopperUnifiedBottom #receiptTest{border:0;border-top:1px solid #c5dccd;border-radius:0;margin:15px 0 0;padding:14px 0 0;box-shadow:none;background:transparent}
 #shopperUnifiedBottom #receiptTest h2{font-size:16px;color:#095b30}
@@ -174,14 +175,14 @@
   <p>Save or open lists, share your current shopping report, or print with the compact stencil layout. Sharing uses your phone's normal sharing menu.</p>
   <div class="saved-controls"><button id="saveNamedListBottom" type="button">💾 SAVE CURRENT LIST</button><select id="savedListSelectBottom" aria-label="Choose a saved shopping list"><option value="">No saved lists yet</option></select></div>
   <div class="saved-actions">
-    <button type="button" id="openNamedListBottom">OPEN</button>
-    <button type="button" id="renameNamedListBottom">RENAME</button>
-    <button type="button" id="copyNamedListBottom">COPY LIST</button>
+    <button type="button" id="openNamedListBottom">📂 OPEN</button>
+    <button type="button" id="renameNamedListBottom">📝 RENAME</button>
+    <button type="button" id="copyNamedListBottom">📑 COPY LIST</button>
     <button type="button" id="shareShoppingListBottom">📤 SHARE</button>
-    <button type="button" id="importNamedListBottom">IMPORT BACKUP</button>
-    <button type="button" id="deleteNamedListBottom">DELETE</button>
-    <button type="button" id="rtShareImage">SHARE IMAGE</button>
-    <button type="button" id="rtPrint">PRINT</button>
+    <button type="button" id="importNamedListBottom">📤 IMPORT BACKUP</button>
+    <button type="button" id="deleteNamedListBottom">🗑️ DELETE</button>
+    <button type="button" id="rtShareImage">🏞️ SHARE IMAGE</button>
+    <button type="button" id="rtPrint">🖨️ PRINT</button>
   </div>
   <input type="file" id="importNamedFile" accept=".txt,.json,text/plain,application/json" hidden aria-label="Choose saved shopping list backup">
   <p class="saved-note">SHARE sends plain text without the trolley graphic. SHARE IMAGE preserves the trolley and tick boxes. PRINT uses your phone's printing controls. Saved lists remain on this device.</p>
