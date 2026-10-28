@@ -782,21 +782,7 @@ const INVENTORY=[
 // ------------------------------------------------------------------------------
 // A1_LF5
 // ------------------------------------------------------------------------------
-  ["Iceland Hot & Spicy Chicken Skewers 4 Pack 320g","47725","A1_LF5 / A1_RF3 / A1_RF9"],
-  ["Iceland Ready Cooked Flame Grilled 4 Tandoori Chicken Skewers 340g","49225","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Banana Flavour Complete Meal 500ml","105564","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Banana Split Flavour Mixers 140g","105940","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Chocolate Flavor Mousse 200g","103055","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Chocolate Flavour Pudding 200g","103056","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Complete Cookies & Cream Flavour 500ml","103483","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Complete Meal White Chocolate Pistachio Flavour 500ml","106025","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Cookies & Cream Flavour Mixers 140g","105942","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Crunch Strawberry Yogurt 180g","104193","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Salted Caramel Flavor Mousse 200g","103043","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Strawberries & Cream Flavour Mixers 140g","105937","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Vanilla Flavour Pudding 200g","103057","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Yogurt Strawberry Flavour 210g","107064","A1_LF5 / A1_LF6"],
-  ["Müller Myprotein Yogurt Vanilla Flavour 210g","107061","A1_LF5 / A1_LF6"],
+  // DUPLICATE — confirmed active at A1_RF3: ["Iceland Ready Cooked Flame Grilled 4 Tandoori Chicken Skewers 340g","49225","A1_LF5 / A1_LF6"],
   ["Myprotein 2 Chargrilled Butterfly BBQ Chicken Burgers 300g","54161","A1_LF5 / A1_LF6"],
   ["Myprotein 2 Ostrich Fillet Steaks 250g","95020","A1_LF5 / A1_LF6"],
   ["Myprotein 4 Korean BBQ Chicken Skewers 520g","51293","A1_LF5 / A1_LF6"],
@@ -804,10 +790,7 @@ const INVENTORY=[
   ["Myprotein 6 Tandoori Chicken Koftas 480g","57802","A1_LF5 / A1_LF6"],
   ["Myprotein Cajun Chicken Pasta 550g","94956","A1_LF5 / A1_LF6"],
   ["Myprotein Chicken Kebab Meat 450g","95471","A1_LF5 / A1_LF6"],
-  ["Myprotein Chocolate Flavour Shake 385ml","104083","A1_LF5 / A1_LF6"],
-  ["Myprotein Complete Meal","94052","A1_LF5 / A1_LF6"],
   ["Myprotein Four Cheese 2 Omelettes 240g","47441","A1_LF5 / A1_LF6"],
-  ["Myprotein Strawberry Flavour Shake 385ml","104084","A1_LF5 / A1_LF6"],
   ["Slimming World 2 Apple, Blackberry & Cinnamon Crumbles 230g","48225","A1_LF5"],
   ["Slimming World 2 Rhubarb, Strawberry & Apple Crumbles 230g","48230","A1_LF5"],
   ["Slimming World Cauliflower Cheese 300g","48241","A1_LF5"],
@@ -871,7 +854,7 @@ const INVENTORY=[
   ["Myprotein Piri Piri Chicken With Rice 350g","26054","A1_LF6"],
   ["Myprotein Pulled Chicken with Cheesy Spinach Mash 550g","56518","A1_LF6"],
   ["Myprotein Sticky Honey, Ginger & Sesame Chicken with Rice 350g","37362","A1_LF6"],
-  ["Myprotein Sticky Honey Special Fried Rice 600g","56240","A1_LF6 / A5_LS14_S5"],
+  ["Myprotein Sticky Honey Special Fried Rice 600g","56240","A1_LF6"],
   ["Myprotein Sweet & Sour Chicken 375g","56517","A1_LF6"],
   ["Slimming World Free Food Chicken Carbonara","54839","A1_LF6 / A1_LF2"],
   ["Slimming World Free Food Hunter's Chicken Pasta","94958","A1_LF6 / A1_LF3"],
@@ -5413,6 +5396,27 @@ const INVENTORY=[
 // ["Müller Corner Limited Edition 136g","","A4_F4_S3"], // Variant/code not established from label alone.
 // ["Müller MYPROTEIN Crunch Yogurt","","A4_F4_S4"], // Exact name/code unverified; photo shows Crunch pots.
 
+// UNLOCATED PRODUCT INVENTORY — preserve product name and Iceland code; no guessed shelf/freezer number.
+// Chilled Müller/Myprotein products removed from outdated A1_LF5 / A1_LF6 freezer assignments;
+// the shopper can still match these products; unlocated ones are shown at the END of the pick.
+["Iceland Hot & Spicy Chicken Skewers 4 Pack 320g","47725",""],
+["Müller Myprotein Banana Flavour Complete Meal 500ml","105564",""],
+["Müller Myprotein Banana Split Flavour Mixers 140g","105940",""],
+["Müller Myprotein Chocolate Flavor Mousse 200g","103055",""],
+["Müller Myprotein Chocolate Flavour Pudding 200g","103056",""],
+["Müller Myprotein Complete Cookies & Cream Flavour 500ml","103483",""],
+["Müller Myprotein Complete Meal White Chocolate Pistachio Flavour 500ml","106025",""],
+["Müller Myprotein Cookies & Cream Flavour Mixers 140g","105942",""],
+["Müller Myprotein Crunch Strawberry Yogurt 180g","104193",""],
+["Müller Myprotein Salted Caramel Flavor Mousse 200g","103043",""],
+["Müller Myprotein Strawberries & Cream Flavour Mixers 140g","105937",""],
+["Müller Myprotein Vanilla Flavour Pudding 200g","103057",""],
+["Müller Myprotein Yogurt Strawberry Flavour 210g","107064",""],
+["Müller Myprotein Yogurt Vanilla Flavour 210g","107061",""],
+["Myprotein Chocolate Flavour Shake 385ml","104083",""],
+["Myprotein Complete Meal","94052",""],
+["Myprotein Strawberry Flavour Shake 385ml","104084",""],
+
 ];
 
 // Personal inventory changes are separate from the verified base inventory.
@@ -5464,21 +5468,58 @@ function skewerKey(value){
 function matchSkewers(name){
  const key=skewerKey(name);
  if(!key)return null;
- const exact=groups.filter(g=>skewerKey(g.name)===key);
- if(exact.length===1)return {group:exact[0],choices:[]};
- if(exact.length>1)return {group:null,choices:exact.slice(0,3)};
- const keyWords=key.split(' ');
- const sizes=keyWords.filter(w=>/^\d+(?:g|kg|ml|l)$/.test(w));
+ const same=groups.filter(g=>skewerKey(g.name)===key);
+ if(same.length===1)return {group:same[0],choices:[]};
+ if(same.length>1)return {group:null,choices:same.slice(0,3)};
+ const words=key.split(' '),weight=words.find(w=>/^\d+(?:g|kg|ml|l)$/.test(w))||'';
  const generic=new Set(['chicken','skewers','with','and']);
- const distinct=keyWords.filter(w=>w.length>=3&&!generic.has(w)&&!sizes.includes(w));
- const scored=groups.filter(g=>{
-  const candidate=skewerKey(g.name);
-  if(!candidate)return false;
-  const words=new Set(candidate.split(' '));
-  return sizes.every(w=>words.has(w))&&distinct.every(w=>words.has(w));
- }).map(g=>({g,s:score(name,g.name)})).sort((a,b)=>b.s-a.s||a.g.name.localeCompare(b.g.name));
- if(scored.length===1&&scored[0].s>.90&&!hasWrongSize(name,scored[0].g.name))return {group:scored[0].g,choices:[]};
- return {group:null,choices:scored.slice(0,3).map(x=>x.g)};
+ const flavour=words.filter(w=>w.length>=3&&!generic.has(w)&&w!==weight);
+ const candidates=groups.filter(g=>{
+  const target=skewerKey(g.name);
+  if(!target)return false;
+  const w=new Set(target.split(' '));
+  if(weight&&!w.has(weight))return false;
+  // Do not recommend a different brand just because it is also a skewer.
+  if(/\biceland\b/i.test(name)&&!/\biceland\b/i.test(g.name))return false;
+  return true;
+ }).map(g=>{
+   const w=new Set(skewerKey(g.name).split(' '));
+   const shared=flavour.filter(t=>w.has(t)).length;
+   const similarity=score(name,g.name);
+   return {g,shared,s:shared*4+similarity};
+ }).sort((a,b)=>b.shared-a.shared||b.s-a.s||a.g.name.localeCompare(b.g.name));
+ // A missing exact flavour remains UNRESOLVED; these are possibilities, not a guessed replacement.
+ return {group:null,choices:candidates.slice(0,3).map(x=>x.g)};
+}
+function productKind(name){
+ const n=normalize(name);
+ const kinds=[
+ ['fish fingers',/\bfish fingers?\b/],['chicken breast steaks',/\bchicken\b.*\b(?:breast steaks|breasteaks)\b/],
+ ['chicken skewers',/\bchicken\b.*\bskewers?\b/],['chicken wings',/\bchicken\b.*\bwings?\b/],
+ ['chicken strips',/\bchicken\b.*\bstrips?\b/],['chicken nuggets',/\bchicken\b.*\bnuggets?\b/],
+ ['chicken burgers',/\bchicken\b.*\bburgers?\b/],['chicken steaks',/\bchicken\b.*\bsteaks?\b/],
+ ['yogurt',/\b(?:yogurt|yoghurt|yogurts|yoghurts)\b/],['mousse',/\bmousse\b/],['pudding',/\bpuddings?\b/],
+ ['shake',/\b(?:shakes?|milkshakes?)\b/],['omelette',/\bomelettes?\b/],['bleach',/\bbleach\b/],
+ ['ice cream',/\bice cream\b/],['pizza',/\bpizzas?\b/],['fishcakes',/\bfish cakes?\b/],
+ ['sausages',/\bsausages?\b/],['chicken pasta',/\bchicken\b.*\bpasta\b/],['cereal',/\bcereal\b/]
+ ];
+ return (kinds.find(([k,re])=>re.test(n))||[])[0]||'';
+}
+function closeAlternatives(name){
+ const kind=productKind(name);
+ if(!kind)return [];
+ const want=tokens(name),wt=want.filter(t=>/^\d+(?:g|kg|ml|l)$/.test(t));
+ const brand=want[0],ignored=new Set(['iceland','the','and','with','ready','cooked','pack','4pk','2pk','pk','flavour','flavored','flavoured']);
+ const distinctive=want.filter(w=>w.length>=3&&!ignored.has(w)&&!wt.includes(w));
+ const candidates=groups.filter(g=>productKind(g.name)===kind).map(g=>{
+  const w=new Set(tokens(g.name));
+  const shared=distinctive.filter(t=>w.has(t)).length;
+  const sizeMatches=wt.length?wt.every(t=>w.has(t)):true;
+  const brandMatch=brand===tokens(g.name)[0];
+  return {g,shared,brandMatch,sizeMatches,sc:score(name,g.name)+shared*.45+(sizeMatches?1:0)+(brandMatch?.7:0)};
+ }).filter(o=>o.shared>=Math.min(2,distinctive.length)&&(!wt.length||o.sizeMatches))
+ .sort((a,b)=>b.sc-a.sc||a.g.name.localeCompare(b.g.name));
+ return candidates.slice(0,3).map(x=>x.g);
 }
 function matched(name){
  const cleaned=String(name||'').trim();
@@ -5491,9 +5532,9 @@ function matched(name){
   if(exactCode.length>1)return {group:null,choices:exactCode.slice(0,3)};
  }
 const skewerMatch=matchSkewers(name);if(skewerMatch)return skewerMatch;
-const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});return {group:null,choices:filtered.slice(0,3).map(x=>x.g)}}return {group:null,choices:[]}}
+const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});return {group:null,choices:(filtered.length?filtered.map(x=>x.g).filter(g=>!productKind(name)||productKind(g.name)===productKind(name)).filter(g=>!hasWrongSize(name,g.name)).slice(0,3):closeAlternatives(name))}}return {group:null,choices:closeAlternatives(name)}}
 function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const base=l.replace(/_S\d+$/,'');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
-function compare(a,b){const x=pos(a.location),y=pos(b.location);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2])||a.i-b.i}
+function compare(a,b){const unlocatedA=!a.location&&!a.manualLocation,unlocatedB=!b.location&&!b.manualLocation;if(unlocatedA!==unlocatedB)return unlocatedA?1:-1;const x=pos(a.location),y=pos(b.location);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2])||a.i-b.i}
 // Search suggestions only: favour complete words and all query terms over partial matches.
 // This does not change the separate inventory/walkthrough matching algorithm.
 function searchRelevanceScore(query,name){
@@ -5826,9 +5867,9 @@ function draw(){
   if(ld.shelf)aside.append(el('div','shelf-label',ld.levelLabel),el('div','shelf-number',ld.shelf));
   const body=el('section','detail');body.append(el('h3','',x.name),el('span','qty','QTY '+x.qty));
   if((x.options.length||!x.selectedCode)&&!x.manualLocation){
-    body.append(el('div','subhead','CHOOSE THE CORRECT PRODUCT'));
+    body.append(el('div','subhead',x.options.length?'POSSIBLE ALTERNATIVES — CHOOSE ONLY IF CORRECT':'NO CONFIDENT MATCH — REVIEW AT END'));
     const options=el('div','alts');
-    if(!x.options.length)options.append(el('p','hint','No confident match. Press EDIT to enter its location.'));
+    if(!x.options.length)options.append(el('p','hint','No close alternative confirmed. This item stays at the end of your pick; use EDIT to give it a verified location.'));
     for(const p of x.options){const b=el('button','',p.name);b.onclick=()=>chooseProduct(x.id,p.code,p.name);options.append(b)}body.append(options);
   }else{
     body.append(el('div','subhead','AVAILABLE SHOP LOCATIONS'));
