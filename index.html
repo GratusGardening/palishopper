@@ -831,13 +831,13 @@ const INVENTORY=[
 // ------------------------------------------------------------------------------
 // A1_LF6
 // ------------------------------------------------------------------------------
-  ["Birds Eye Chicken Dippers","56698","A1_LF6 / A1_RF11"],
-  ["Iceland Hot & Spicy Crunchy Coated Chicken Strips 500g","40990","A1_LF6 / A1_RF4"],
+// OLD CODE CONFLICT — RETAINED FOR RESEARCH, not active: ["Birds Eye Chicken Dippers","56698","A1_LF6 / A1_RF11"],
+// OLD CODE CONFLICT — RETAINED FOR RESEARCH, not active: ["Iceland Hot & Spicy Crunchy Coated Chicken Strips 500g","40990","A1_LF6 / A1_RF4"],
   ["Myprotein 8 Chicken Sausages 480g","56701","A1_LF6"],
   ["Myprotein Butter Chicken 375g","56471","A1_LF6"],
   ["Myprotein Cheese & Ham 2 Omelettes 240g","47365","A1_LF6 / A1_LF7"],
   ["Myprotein Chicken & Beef Naked Burrito 350g","28926","A1_LF6"],
-  ["Myprotein Chicken & Chorizo Paella","56285","A1_LF6"],
+// OLD CODE CONFLICT — RETAINED FOR RESEARCH, not active: ["Myprotein Chicken & Chorizo Paella","56285","A1_LF6"],
   ["Myprotein Chicken & Chorizo Paella 500g","48218","A1_LF6"],
   ["Myprotein Chicken & Chorizo Pasta 350g","54841","A1_LF6"],
   ["Myprotein Chicken Korma 375g","56464","A1_LF6"],
@@ -856,9 +856,9 @@ const INVENTORY=[
   ["Myprotein Sticky Honey, Ginger & Sesame Chicken with Rice 350g","37362","A1_LF6"],
   ["Myprotein Sticky Honey Special Fried Rice 600g","56240","A1_LF6"],
   ["Myprotein Sweet & Sour Chicken 375g","56517","A1_LF6"],
-  ["Slimming World Free Food Chicken Carbonara","54839","A1_LF6 / A1_LF2"],
-  ["Slimming World Free Food Hunter's Chicken Pasta","94958","A1_LF6 / A1_LF3"],
-  ["Slimming World Free Food Minced Beef Hotpot","92572","A1_LF6 / A1_LF2 / A1_LF3"],
+// OLD CODE CONFLICT — RETAINED FOR RESEARCH, not active: ["Slimming World Free Food Chicken Carbonara","54839","A1_LF6 / A1_LF2"],
+// OLD CODE CONFLICT — RETAINED FOR RESEARCH, not active: ["Slimming World Free Food Hunter's Chicken Pasta","94958","A1_LF6 / A1_LF3"],
+// OLD CODE CONFLICT — RETAINED FOR RESEARCH, not active: ["Slimming World Free Food Minced Beef Hotpot","92572","A1_LF6 / A1_LF2 / A1_LF3"],
   // ALSO RECORDED HERE — edit the actual product row in the indicated section:
   //   Iceland Ready Cooked Flame Grilled 4 Tandoori Chicken Skewers 340g | 49225 | EDIT UNDER A1_LF5
   //   Müller Myprotein Banana Flavour Complete Meal 500ml | 105564 | EDIT UNDER A1_LF5
@@ -5417,6 +5417,17 @@ const INVENTORY=[
 ["Myprotein Complete Meal","94052",""],
 ["Myprotein Strawberry Flavour Shake 385ml","104084",""],
 
+// VERIFIED ICELAND CODES / WSM DELIVERY-LISTED MYPROTEIN FROZEN FOODS — LOCAL FREEZER NOT VERIFIED.
+// Unlocated products remain searchable and are kept at the END of the pick (not incorrectly placed in A1_LF5/6).
+["Myprotein Hot Honey Chicken Mac & Cheese with Pepperoni 350g","40990",""],
+["Myprotein Meat Feast Pasta 550g","92572",""],
+["Myprotein Chicken Arrabbiata 600g","56285",""],
+["Myprotein Meat Feast Pizza 348g","40064",""],
+["Myprotein Chicken Carbonara 350g","54839",""],
+["Myprotein Char Siu Honey Chicken 375g","56698",""],
+["Myprotein Creamy Chicken Alfredo 550g","48161",""],
+["Myprotein Hunters BBQ Chicken Pasta 550g","94958",""],
+
 ];
 
 // Personal inventory changes are separate from the verified base inventory.
@@ -5532,7 +5543,7 @@ function matched(name){
   if(exactCode.length>1)return {group:null,choices:exactCode.slice(0,3)};
  }
 const skewerMatch=matchSkewers(name);if(skewerMatch)return skewerMatch;
-const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});return {group:null,choices:(filtered.length?filtered.map(x=>x.g).filter(g=>!productKind(name)||productKind(g.name)===productKind(name)).filter(g=>!hasWrongSize(name,g.name)).slice(0,3):closeAlternatives(name))}}return {group:null,choices:closeAlternatives(name)}}
+const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});const sameType=filtered.map(x=>x.g).filter(g=>!productKind(name)||productKind(g.name)===productKind(name)).filter(g=>!hasWrongSize(name,g.name)).slice(0,3);return {group:null,choices:sameType.length?sameType:closeAlternatives(name)}}return {group:null,choices:closeAlternatives(name)}}
 function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const base=l.replace(/_S\d+$/,'');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
 function compare(a,b){const unlocatedA=!a.location&&!a.manualLocation,unlocatedB=!b.location&&!b.manualLocation;if(unlocatedA!==unlocatedB)return unlocatedA?1:-1;const x=pos(a.location),y=pos(b.location);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2])||a.i-b.i}
 // Search suggestions only: favour complete words and all query terms over partial matches.
