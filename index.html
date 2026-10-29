@@ -348,8 +348,8 @@ const INVENTORY=[
 // ["Iceland Ready Cooked Hot & Spicy Chicken Skewers 340g","47277","A1_RF3"],
 
 // A1_RF3 — ICELAND RANGE OVERSPILL (INACTIVE — FOUR CANDIDATES)
-["Iceland 4 BBQ Chicken Skewers with Peppers & Onions 340g","18407","A1_RF3"],
-["Iceland 4 Chicken Breast Skewers with Peppers & Onions 340g","18406","A1_RF3"],
+  // ["Iceland 4 BBQ Chicken Skewers with Peppers & Onions 340g","18407","A1_RF3"], // REASSIGNED / RECONFIRMED A1_RF6 on 29 Oct 2026; historical name and location retained
+  // ["Iceland 4 Chicken Breast Skewers with Peppers & Onions 340g","18406","A1_RF3"], // REASSIGNED / RECONFIRMED A1_RF6 on 29 Oct 2026; historical name and location retained
 // ["Iceland Ready Cooked Hoisin Chicken Skewers 340g","93413","A1_RF3"],
 // ["Iceland Ready Cooked Tikka Chicken Skewers 340g","40215","A1_RF3"],
 
@@ -452,14 +452,33 @@ const INVENTORY=[
 // ------------------------------------------------------------------------------
 // A1_RF6
 // ------------------------------------------------------------------------------
-  ["Iceland Chinese Sliced Chicken Breast 500g","45570","A1_RF6"],
-  ["Iceland Diced Chicken Breast 400g","72481","A1_RF6 / A2_RF6"],
-  ["Iceland Hot & Spicy Sliced Chicken Breast 500g","45418","A1_RF6"],
+// A. ACTIVE — CURRENT WESTON VISUAL INVENTORY CONFIRMED BY USER 29 OCT 2026 — 13 PRODUCTS
+  ["Iceland Sliced Chicken Breast 1kg","56455","A1_RF6"],
+  ["Iceland Sliced Chicken Breast 500g","64748","A1_RF6"],
   ["Iceland Tikka Sliced Chicken Breast 500g","45235","A1_RF6"],
-  // ALSO RECORDED HERE — edit the actual product row in the indicated section:
-  //   Iceland Chargrilled Chicken Breast Strips 400g | 54060 | EDIT UNDER A1_F6_S1
-  //   Iceland Glazed Sweet Chilli Chicken Skewers 4 Pack 320g | 45411 | EDIT UNDER A1_RF10
-  //   Iceland Singapore Chicken | 49088 | EDIT UNDER A1_RF10
+  ["Iceland Sweet Chilli Sliced Chicken Breast 500g","45411","A1_RF6"],
+  ["Iceland Hot & Spicy Sliced Chicken Breast 500g","45418","A1_RF6"],
+  ["Iceland Ready Cooked Chargrilled Tikka Chicken Fillets 400g","51363","A1_RF6"],
+  ["Iceland Ready Cooked Chargrilled Piri Piri Chicken Fillets 400g","51417","A1_RF6"],
+  ["Iceland Diced Chicken Breast 1kg","56456","A1_RF6"],
+  ["Iceland Diced Chicken Breast 500g","40152","A1_RF6"],
+  ["Iceland Chinese Sliced Chicken Breast 500g","45570","A1_RF6"],
+  ["Iceland Flame Grilled BBQ Chicken Mini Fillets 450g","46078","A1_RF6"],
+  ["Iceland 4 Chicken Breast Skewers with Peppers & Onions 340g","18406","A1_RF6"],
+  ["Iceland 4 BBQ Chicken Skewers with Peppers & Onions 340g","18407","A1_RF6"],
+
+// B. WESTON LOCAL DELIVERY CANDIDATES — INACTIVE
+// No additional independently matched RF6 candidate from supplied evidence.
+
+// C. EXISTING RF6 HISTORICAL OVERSPILL — INACTIVE / COMMENT ONLY
+// ["Iceland Diced Chicken Breast 400g","72481","A1_RF6 / A2_RF6"], // Old location not reconfirmed.
+
+// D. REASSIGNMENTS & CROSS-REFERENCES — INACTIVE / COMMENT ONLY
+// 18406 and 18407 formerly labelled RF3; the user now specifies RF6 (original RF3 entries kept as commented history).
+// 56455 old A1_F5 / A1_F6; 51363, 51417, 46078 old A1_F4; 40152 old A1_F4_S3.
+// 45411 old inventory wrongly described Sweet Chilli CHICKEN SKEWERS; Iceland URL confirms SLICED CHICKEN BREAST 500g.
+// 54060 Chargrilled Chicken Breast Strips 400g remains referenced under A1_F6_S1 only, not RF6 active.
+// 49088 Singapore Chicken remains referenced under A1_RF10 only, not RF6 active.
 
 // ------------------------------------------------------------------------------
 // A1_RF7
@@ -570,7 +589,7 @@ const INVENTORY=[
   ["Iceland 2 XL Buttermilk Chicken Fillet Burgers 400g","48816","A1_RF10"],
   ["Iceland Breaded Crispy Shredded Chicken 450g","81787","A1_RF10"],
   ["Iceland Crispy Chicken Popsters 600g","91620","A1_RF10"],
-  ["Iceland Glazed Sweet Chilli Chicken Skewers 4 Pack 320g","45411","A1_RF10 / A1_RF3 / A1_RF4 / A1_RF6 / A1_RF5"],
+  // ["Iceland Glazed Sweet Chilli Chicken Skewers 4 Pack 320g","45411","A1_RF10 / A1_RF3 / A1_RF4 / A1_RF6 / A1_RF5"], // LEGACY WRONG NAME: code 45411 is Sweet Chilli Sliced Chicken Breast 500g (verified Iceland), now A1_RF6
   ["Iceland Glazed Teriyaki Chicken Skewers 4 Pack 320g","45879","A1_RF10 / A1_RF3 / A1_RF9"],
   ["Iceland Singapore Chicken","49088","A1_RF10 / A1_RF6"],
   ["Iceland Singapore Chicken Noodles","72480","A1_RF10"],
@@ -1320,15 +1339,15 @@ const INVENTORY=[
   ["Iceland Chicken Mini Breast Fillets 400g","79734","A1_F4"],
   ["Iceland Chicken Mini Breast Fillets 600g","54924","A1_F4"],
   ["Iceland Chinese Pork Loin Steaks","21237","A1_F4"],
-  ["Iceland Diced Chicken Breast 500g","40152","A1_F4_S3"],
+  // ["Iceland Diced Chicken Breast 500g","40152","A1_F4_S3"], // REASSIGNED / RECONFIRMED A1_RF6 on 29 Oct 2026; historical name and location retained
   ["Iceland Extra Thin BBQ Chicken Sizzle Steaks 450g","19967","A1_F4"],
   ["Iceland Extra Thin Garlic & Herb Chicken Sizzle Steaks 450g","19960","A1_F4"],
-  ["Iceland Flame Grilled BBQ Chicken Mini Fillets 450g","46078","A1_F4"],
+  // ["Iceland Flame Grilled BBQ Chicken Mini Fillets 450g","46078","A1_F4"], // REASSIGNED / RECONFIRMED A1_RF6 on 29 Oct 2026; historical name and location retained
   ["Iceland Maple BBQ Pork Loin Steaks 345g (15% Extra Free)","79917","A1_F4"],
   ["Iceland Pork Shoulder Steaks Boneless 500g","79397","A1_F4"],
-  ["Iceland Ready Cooked Chargrilled Piri Piri Chicken Fillets 400g","51417","A1_F4"],
+  // ["Iceland Ready Cooked Chargrilled Piri Piri Chicken Fillets 400g","51417","A1_F4"], // REASSIGNED / RECONFIRMED A1_RF6 on 29 Oct 2026; historical name and location retained
   ["Iceland Ready Cooked Chargrilled Shawarma Chicken Fillets 400g","51421","A1_F4"],
-  ["Iceland Ready Cooked Chargrilled Tikka Chicken Fillets 400g","51363","A1_F4"],
+  // ["Iceland Ready Cooked Chargrilled Tikka Chicken Fillets 400g","51363","A1_F4"], // REASSIGNED / RECONFIRMED A1_RF6 on 29 Oct 2026; historical name and location retained
   ["Iceland Roast Chicken Breast Fillets 385g","85940","A1_F4"],
   ["Iceland Thick Cut Rump Steak 454g","81298","A1_F4"],
   ["Peppa Pig Kids Strawberry Yoghurt Pots 6 x 45g","55312","A1_F4"],
@@ -1375,7 +1394,7 @@ const INVENTORY=[
   ["Iceland Ready to Eat Cooked Chicken Breast Slices 80g","19571","A1_F5 / A1_F6"],
   ["Iceland Roast Chicken 7 Slices","54812","A1_F5_S2"],
   ["Iceland Roast Chicken & Stuffing 6 Slices","54813","A1_F5_S2"],
-  ["Iceland Sliced Chicken Breast 1kg","56455","A1_F5 / A1_F6"],
+  // ["Iceland Sliced Chicken Breast 1kg","56455","A1_F5 / A1_F6"], // REASSIGNED / RECONFIRMED A1_RF6 on 29 Oct 2026; historical name and location retained
   ["Iceland Sliced Chicken Breast 2.1kg","76367","A1_F5 / A1_F6"],
   ["Iceland Sliced Chicken Breast 500g","64748 / 95365","A1_F5 / A1_F6"],
   ["Iceland Sliced Chicken Breast 800g","34175","A1_F5 / A1_F6"],
