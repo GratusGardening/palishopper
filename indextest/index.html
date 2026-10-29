@@ -137,6 +137,29 @@
  #shopperUnifiedBottom #receiptTest > :not(.rt-paper-wrap){display:none!important}
 }
 
+
+/* INDEXTEST: Unified mobile location editor (preserves approved saved-list buttons). */
+#shopperProductDialog{border:1.5px solid #d6ded8;border-radius:19px;background:#fff;color:#171c1a;width:min(94vw,470px);max-width:94vw;max-height:88dvh;overflow:auto;padding:20px;box-shadow:0 14px 44px #0004;box-sizing:border-box}
+#shopperProductDialog::backdrop{background:#07170fa8}
+#shopperProductDialog *{box-sizing:border-box}
+#shopperProductDialog h2{font-size:23px;line-height:1.2;margin:2px 0 12px;font-weight:900;color:#15231a}
+#shopperProductDialog .sp-product{font-size:13px;line-height:1.4;color:#65716b;margin:0 0 12px;overflow-wrap:anywhere}
+#shopperProductDialog .sp-field{margin:12px 0 5px;font-size:16px;line-height:1.25;font-weight:800;display:block;color:#263e31}
+#shopperProductDialog .sp-aisle-row{display:flex;gap:12px;overflow-x:auto;scrollbar-width:thin;padding:7px 0 9px;white-space:nowrap}
+#shopperProductDialog .sp-aisle-row label{display:flex;align-items:center;gap:5px;flex:none;font-size:16px;font-weight:650}
+#shopperProductDialog input[type=radio]{accent-color:#008633;width:19px;height:19px;margin:0}
+#shopperProductDialog input[type=text],#shopperProductDialog input[type=number],#shopperProductDialog select{border:1.5px solid #c8d2cd;border-radius:14px;background:#fff;color:#202820;padding:11px 12px;font-size:15px;min-height:46px;width:100%}
+#shopperProductDialog .sp-fixture-row{display:grid;grid-template-columns:minmax(0,1fr) 85px;gap:8px}
+#shopperProductDialog .sp-fixture-row input{text-align:center}
+#shopperProductDialog .sp-preview{margin:13px 0 16px;border-radius:14px;background:#f0f2f0;padding:12px 13px}
+#shopperProductDialog .sp-preview span{display:block;font-size:12px;font-weight:700;color:#626b64;margin-bottom:7px}
+#shopperProductDialog .sp-preview strong{display:block;font-size:17px;line-height:1.35;color:#17251a;overflow-wrap:anywhere}
+#shopperProductDialog .sp-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
+#shopperProductDialog .sp-actions button{min-height:48px;border-radius:13px;border:0;padding:9px;font-size:14px;font-weight:900}
+#shopperProductDialog #spCancel{background:#e8edeb;color:#222e29}
+#shopperProductDialog #spSave{background:#008633;color:#fff}
+#shopperProductDialog .sp-note{font-size:12px;color:#67736d;margin:8px 0}
+
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head><body><main class="app"><div id="testModeBanner" role="status" style="background:#fff2b6;color:#312000;font:bold 16px/1.4 Arial,sans-serif;text-align:center;border:3px solid #d19b00;border-radius:12px;padding:12px;margin:5px 0 12px">🧪 PALiSHoPPER INDEXTEST — CHANGES HERE DO NOT UPDATE THE LIVE HOME PAGE</div>
@@ -210,6 +233,43 @@
 
 
 <div class="footer">PALiSHoPPER · Not affiliated with Iceland's checkout.<br>Items are saved on this device. Store locations need checking in store.</div>
+
+<dialog id="shopperProductDialog" aria-labelledby="spHeading">
+ <h2 id="spHeading">EDIT LOCATION</h2>
+ <p class="sp-product" id="spProductLabel"></p>
+ <label class="sp-field" for="spProductName">Product name (quantity optional)</label>
+ <input type="text" id="spProductName" autocomplete="off" aria-label="Product name or quantity">
+ <span class="sp-field">Aisle</span>
+ <div class="sp-aisle-row" role="radiogroup" aria-label="Aisle">
+  <label><input type="radio" name="spAisle" value="A1"> A1</label>
+  <label><input type="radio" name="spAisle" value="A2"> A2</label>
+  <label><input type="radio" name="spAisle" value="A3"> A3</label>
+  <label><input type="radio" name="spAisle" value="A4"> A4</label>
+  <label><input type="radio" name="spAisle" value="A5"> A5</label>
+  <label><input type="radio" name="spAisle" value="A6"> A6</label>
+ </div>
+ <label class="sp-field" for="spFixture">Shelf / Unit / Freezer</label>
+ <div class="sp-fixture-row">
+  <select id="spFixture" aria-label="Fixture type">
+   <option value="">No location / unknown</option>
+   <option value="LS">Left Shelf (LS)</option>
+   <option value="RS">Right Shelf (RS)</option>
+   <option value="U">Unit (U)</option>
+   <option value="F">Fridge (F)</option>
+   <option value="LF">Left Freezer (LF)</option>
+   <option value="RF">Right Freezer (RF)</option>
+   <option value="VEG">Fruit &amp; Vegetables</option>
+   <option value="TILL">By the till</option>
+  </select>
+  <input type="number" id="spFixtureNumber" inputmode="numeric" min="1" max="99" placeholder="No." aria-label="Fixture number">
+ </div>
+ <label class="sp-field" for="spLevel">Level — optional</label>
+ <input id="spLevel" type="number" min="1" max="99" inputmode="numeric" placeholder="Leave blank if not needed">
+ <div class="sp-preview"><span>PREVIEW</span><strong id="spLocationPreview">No location chosen</strong></div>
+ <div class="sp-actions"><button type="button" id="spCancel">CANCEL</button><button type="button" id="spSave">SAVE LOCATION</button></div>
+ <p class="sp-note">Changes are saved on this device. Blank locations are allowed.</p>
+</dialog>
+
 </main><script>
 const INVENTORY=[
 // PALiSHoPPER — WESTON-SUPER-MARE STORE 1386
@@ -5864,45 +5924,107 @@ function parseManualLocation(aisle,entry){
  else code='U';
  return aisle+'_'+code+n+(level?'_S'+level:'');
 }
+
+/* Unified EDIT panel; source product/locations preserved unless user confirms. */
+let activeShopperEditId=null;
+const spEl=id=>document.getElementById(id);
+function spAisle(){return document.querySelector('input[name="spAisle"]:checked')?.value||'A1'}
+function spType(){return spEl('spFixture').value}
+function spDisplayType(aisle,type){
+ if(type==='VEG')return 'Fruit & Vegetables';
+ if(type==='TILL')return 'By the till';
+ if(type==='U'&&aisle==='A5')return 'Left Shelf';
+ if(type==='U'&&aisle==='A6')return 'Shelf';
+ return ({LS:'Left Shelf',RS:'Right Shelf',U:'Unit',F:'Fridge',LF:'Left Freezer',RF:'Right Freezer'})[type]||'';
+}
+function spLocationValue(){
+ const aisle=spAisle(),type=spType(),num=spEl('spFixtureNumber').value.trim(),level=spEl('spLevel').value.trim();
+ if(!type)return '';
+ if(type==='VEG')return aisle+'_VEG';
+ if(type==='TILL')return aisle==='A6'?'A6_U13':'';
+ if(!num||!(/^[1-9]\d?$/.test(num)))return '';
+ const kind=type==='LS'&&aisle==='A5'?'U':type;
+ return aisle+'_'+kind+Number(num)+(level&&/^[1-9]\d?$/.test(level)?'_S'+Number(level):'');
+}
+function spUpdate(){
+ const aisle=spAisle(),type=spType(),isNonNumber=type===''||type==='VEG'||type==='TILL';
+ const number=spEl('spFixtureNumber'),level=spEl('spLevel');
+ number.disabled=isNonNumber;level.disabled=isNonNumber;
+ if(type==='TILL'&&aisle!=='A6'){spEl('spLocationPreview').textContent='By the till is in A6';return}
+ if(!type){spEl('spLocationPreview').textContent=aisle+' · Location not assigned';return}
+ const label=spDisplayType(aisle,type);
+ if(isNonNumber){spEl('spLocationPreview').textContent=aisle+' · '+label;return}
+ const num=number.value.trim();
+ if(!num){spEl('spLocationPreview').textContent=aisle+' · '+label+' (number optional — location stays blank)';return}
+ const lv=level.value.trim();
+ spEl('spLocationPreview').textContent=aisle+' · '+label+' '+num+(lv?' · Level '+lv:'');
+}
 function editCard(id){
  const old=items.find(o=>o.id===id);if(!old)return;
- const name=prompt(old.name+'\n\nProduct name?',(old.qty>1?old.qty+' x ':'')+old.raw);
- if(name===null)return;
- if(!name.trim()){alert('Please enter a product name.');return}
- const previousAisle=(String(old.location||'').match(/^(A\d+)/)||[])[1]||'A1';
- const aisleAnswer=prompt(name.trim()+'\n\nAisle? e.g. A5',previousAisle);
- if(aisleAnswer===null)return;
- const aisle=aisleAnswer.trim().toUpperCase().replace(/\s+/g,'');
- if(!/^A\d+$/.test(aisle)){alert('Please enter an aisle such as A1 or A5.');return}
- const oldLocation=String(old.location||'').split('/')[0].trim();
- const locationAnswer=prompt(name.trim()+'\n\nLocation? e.g. LEFT SHELF 10, BY THE TILL, SHELF 5 or RIGHT FREEZER 2',editLocationForPrompt(oldLocation));
- if(locationAnswer===null)return;
- // If aisle changes but the user leaves the old location unedited, reapply that
- // readable location description to the new aisle (not the original aisle code).
- const locStrings=String(locationAnswer).split(/\s*\/\s*/).map(t=>t.trim()).filter(Boolean);
- const parsed=[];
- for(const loc of locStrings){
-  const p=parseManualLocation(aisle,loc);
-  if(p===null){return;}
-  // A code pre-populated with a different aisle should follow the new selected aisle.
-  if(/^A\d+_/.test(p)&&loc.toUpperCase()===oldLocation.toUpperCase()&&aisle!==previousAisle)parsed.push(p.replace(/^A\d+_/,aisle+'_'));
-  else parsed.push(p);
- }
- const locs=[...new Set(parsed)];
- const lines=list.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
- if(old.i<0||old.i>=lines.length){alert('Please recreate your walkthrough before editing this item.');return}
- lines[old.i]=name.trim();
- const p=parseLine(name.trim(),old.i);
- const next=chooseMatch(p,normalize(old.raw)===normalize(p.raw)?old:null);
- next.location=locs[0]||'';
- next.possible=locs.length?[...new Set([...locs,...next.possible])]:[];
- next.manualLocation=Boolean(next.location);next.manualAisle=aisle;
- if(next.manualLocation)rememberLocation(next);
- items=items.map(x=>x===old?next:x);
- items.sort(compare);
- list.value=lines.join('\n');save();draw();
- notify('Product name, aisle and location updated on this device.');
+ const box=spEl('shopperProductDialog');
+ activeShopperEditId=id;
+ spEl('spProductLabel').textContent=old.name;
+ spEl('spProductName').value=(old.qty>1?old.qty+' x ':'')+old.raw;
+ const primary=String(old.location||'').split('/')[0].trim().toUpperCase();
+ const m=primary.match(/^(A[1-6])_(RF|LF|RS|LS|F|U|VEG)(\d+)?(?:_S(\d+))?$/);
+ let aisle=m?.[1]||old.manualAisle||'A1',type=m?.[2]||'',num=m?.[3]||'',level=m?.[4]||'';
+ if(primary==='A6_U13'){aisle='A6';type='TILL';num='';level=''}
+ else if(primary==='A5_U'+num){type='LS'}
+ if(primary.match(/^A5_U\d+/))type='LS';
+ if(!/^A[1-6]$/.test(aisle))aisle='A1';
+ const radio=box.querySelector('input[name="spAisle"][value="'+aisle+'"]');
+ if(radio)radio.checked=true;
+ spEl('spFixture').value=type;
+ spEl('spFixtureNumber').value=num;
+ spEl('spLevel').value=level;
+ spUpdate();
+ if(typeof box.showModal==='function')box.showModal();else box.setAttribute('open','');
 }
+function spClose(){
+ const dlg=spEl('shopperProductDialog');
+ activeShopperEditId=null;
+ if(typeof dlg.close==='function')dlg.close();else dlg.removeAttribute('open');
+}
+function spSave(){
+ const old=items.find(o=>o.id===activeShopperEditId);if(!old){spClose();return}
+ const text=spEl('spProductName').value.trim();if(!text){alert('Please enter a product name.');return}
+ const p=parseLine(text,old.i),aisle=spAisle(),type=spType();
+ const num=spEl('spFixtureNumber').value.trim(),lv=spEl('spLevel').value.trim();
+ if(type==='TILL'&&aisle!=='A6'){alert('By the till is in A6.');return}
+ if((num&&!/^[1-9]\d?$/.test(num))||(lv&&!/^[1-9]\d?$/.test(lv))){alert('Use a shelf/unit number from 1 to 99.');return}
+ // Empty number means unlocated, not an invalid A4_F or A5_LS code.
+ const raw=spLocationValue(),primary=String(old.location||'').split('/')[0].trim();
+ const oldMatch=primary.match(/^(A[1-6])_(RF|LF|RS|LS|F|U|VEG)(\d+)?(?:_S(\d+))?$/);
+ const oldEquivalent=oldMatch&&oldMatch[1]===aisle&&Number(oldMatch[3]||0)===Number(num||0)
+   &&Number(oldMatch[4]||0)===Number(lv||0)
+   &&(oldMatch[2]===type||(aisle==='A5'&&type==='LS'&&oldMatch[2]==='U')||(aisle==='A6'&&type==='TILL'&&primary==='A6_U13'));
+ // Keep historical A5_LS and A5_U codes intact unless the chosen position changes.
+ const location=raw&&oldEquivalent?primary:raw;
+ const lines=list.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+ if(old.i<0||old.i>=lines.length){alert('Please recreate the shopping walkthrough first.');return}
+ lines[old.i]=text;
+ let next;
+ if(normalize(p.raw)===normalize(old.raw)&&p.qty===old.qty){next={...old};}
+ else next=chooseMatch(p,old);
+ next.i=old.i;next.id=p.id;next.raw=p.raw;next.qty=p.qty;
+ next.location=location;
+ next.possible=location?[...new Set([location,...(Array.isArray(old.possible)?old.possible:[])])]:[];
+ next.manualLocation=Boolean(location);
+ next.manualAisle=aisle;
+ if(location)rememberLocation(next);
+ else delete overrides[overrideKey(next)];
+ list.value=lines.join('\n');
+ items=items.map(x=>x===old?next:x);
+ items.sort(compare);save();draw();
+ spClose();
+ notify('Product and location updated on this device.');
+}
+spEl('shopperProductDialog').querySelectorAll('input[name="spAisle"]').forEach(b=>b.addEventListener('change',spUpdate));
+for(const id of ['spFixture','spFixtureNumber','spLevel'])spEl(id).addEventListener('input',spUpdate);
+spEl('spCancel').onclick=spClose;
+spEl('spSave').onclick=spSave;
+spEl('shopperProductDialog').addEventListener('close',()=>{activeShopperEditId=null});
+
 function deleteFromList(id){
  const x=items.find(o=>o.id===id);if(!x||!confirm('Delete "'+x.name+'" from your shopping list and walkthrough?'))return;
  const lines=list.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
