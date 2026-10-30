@@ -1674,9 +1674,9 @@ const INVENTORY=[
 // ------------------------------------------------------------------------------
 // A1_F4_S1
 // ------------------------------------------------------------------------------
-  ["Iceland Beef Steak Mince 12% Fat","75105","A1_F4_S1 / A2_RF5"],
+  // ["Iceland Beef Steak Mince 12% Fat","75105","A1_F4_S1 / A2_RF5"], // HISTORICAL location; photograph/user confirmation now active at A2_RF5
   ["Iceland Lamb Chump Chops 360G","17754","A1_F4_S1 / A1_F4_S3 / A2_RF5"],
-  ["Iceland Lamb Chump Chops 800G","20798 / 20799","A1_F4_S1 / A2_RF5"],
+  // ["Iceland Lamb Chump Chops 800G","20798 / 20799","A1_F4_S1 / A2_RF5"], // HISTORICAL alias; confirmed product active at A2_RF5 with Iceland code 20799
   ["Iceland Lamb Chump Chops with Mint Glaze 360g","17755","A1_F4_S1 / A2_RF5"],
 
 // ------------------------------------------------------------------------------
@@ -1924,31 +1924,49 @@ const INVENTORY=[
 // ------------------------------------------------------------------------------
 // A2_RF5
 // ------------------------------------------------------------------------------
-// A2_RF5 — EXISTING HTML INVENTORY (ACTIVE — retained from latest live version; PHOTO CHECK PENDING)
-  ["Iceland 12 Pork & Beef Meatballs 180g","41510","A2_RF5"],
-  ["Iceland 20 Pack British Beef Meatballs","33950","A2_RF5"],
-  ["Iceland Beef Meatballs 600g","75117","A2_RF5"],
-  ["Iceland Beef Mince 20% Fat 600g","21165","A2_RF5"],
-  ["Iceland Beef Mince 23% Fat 540g","10577","A2_RF5"],
-  ["Iceland Beef Steak Mince 12% Fat 450g","62406","A2_RF5"],
-  ["Iceland British Lean Diced Beef 5% Fat 275g","79723","A2_RF5"],
-  ["Iceland Chicken Mince 5% Fat 500g","69148","A2_RF5"],
-  ["Iceland Diced Casserole Lamb 350g","75118","A2_RF5"],
-  ["Iceland Lamb Mince 450g","75108","A2_RF5"],
-  ["Iceland Lean Beef Steak Mince 400g","55562 / 77239","A2_RF5"],
-  ["Iceland Lean Beef Steak Mince 5% Fat 325g","79718","A2_RF5"],
-  ["Iceland Lean Beef Steak Mince 5% Fat 400g","77106","A2_RF5"],
-  ["Iceland Lean Beef Steak Mince 5% Fat 650g","69711","A2_RF5"],
-  ["Iceland Lean Diced Beef Steak 350g","55573 / 66833","A2_RF5"],
-  ["Iceland Lean Diced Beef Steak 5% Fat 350g","99333","A2_RF5"],
-  ["Iceland Minced Beef & Onion 600g","53892 / 88844","A2_RF5"],
-  ["Iceland Minced Beef and Onion 600g","53946","A2_RF5"],
-  ["Iceland Minted Lamb Chump Chops 800g","22261 / 22281","A2_RF5"],
-  ["Iceland Scottish Beef Mince 23% Fat 540g","10686","A2_RF5"],
-  ["Iceland Scottish Beef Steak Mince 12% Fat 450g","62403","A2_RF5"],
-  ["Iceland Scottish Lean Beef Steak Mince 5% Fat 325g","79725","A2_RF5"],
-  ["Iceland Scottish Lean Diced Beef 5% Fat 275g","79727","A2_RF5"],
+// A. ACTIVE — WESTON-SUPER-MARE A2_RF5 — STORE PHOTO / USER CONFIRMED (30 OCT 2026) — 12 DISTINCT PRODUCTS
+// Product names kept without pack weights; the exact product variant is governed by the Iceland code.
+// Diced Chicken Breast (39393) confirmed by user; not the ready-cooked 40152 stocked under A1_RF6.
+  ["Iceland Beef Steak Mince 12% Fat","75105","A2_RF5"],
+  ["Iceland Lean Beef Steak Mince 5% Fat","77239","A2_RF5"],
+  ["Iceland Beef Mince 20% Fat","21185","A2_RF5"],
+  ["Iceland Chicken Mince 5% Fat","69148","A2_RF5"],
+  ["Iceland Minced Beef & Onion","53946","A2_RF5"],
+  ["Iceland Lamb Mince","75108","A2_RF5"],
+  ["Iceland Lean Diced Beef Steak","66833","A2_RF5"],
+  ["Iceland Beef Meatballs","75117","A2_RF5"],
+  ["Iceland Diced Casserole Lamb","75118","A2_RF5"],
+  ["Iceland Lamb Chump Chops","20799","A2_RF5"],
+  ["Iceland Minted Lamb Chump Chops","22281","A2_RF5"],
+  ["Iceland Diced Chicken Breast","39393","A2_RF5"],
 
+// B. PRIOR HTML ACTIVE ENTRIES — HISTORICAL / UNCONFIRMED VARIANTS (INACTIVE OVERSPILL)
+// These records are preserved for review; NONE is an additional confirmed stocked A2_RF5 line.
+// ["Iceland 12 Pork & Beef Meatballs 180g","41510","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland 20 Pack British Beef Meatballs","33950","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Beef Meatballs 600g","75117","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Beef Mince 20% Fat 600g","21165","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Beef Mince 23% Fat 540g","10577","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Beef Steak Mince 12% Fat 450g","62406","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland British Lean Diced Beef 5% Fat 275g","79723","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Chicken Mince 5% Fat 500g","69148","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Diced Casserole Lamb 350g","75118","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Lamb Mince 450g","75108","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Lean Beef Steak Mince 400g","55562 / 77239","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Lean Beef Steak Mince 5% Fat 325g","79718","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Lean Beef Steak Mince 5% Fat 400g","77106","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Lean Beef Steak Mince 5% Fat 650g","69711","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Lean Diced Beef Steak 350g","55573 / 66833","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Lean Diced Beef Steak 5% Fat 350g","99333","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Minced Beef & Onion 600g","53892 / 88844","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Minced Beef and Onion 600g","53946","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Minted Lamb Chump Chops 800g","22261 / 22281","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Scottish Beef Mince 23% Fat 540g","10686","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Scottish Beef Steak Mince 12% Fat 450g","62403","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Scottish Lean Beef Steak Mince 5% Fat 325g","79725","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+// ["Iceland Scottish Lean Diced Beef 5% Fat 275g","79727","A2_RF5"], // prior active, retained as historic/unconfirmed variant
+
+// C. PRE-EXISTING HISTORICAL XLSX OVERSPILL AND CROSS-REFERENCES — PRESERVED
 // A2_RF5 — ICELAND RANGE OVERSPILL (INACTIVE — catalogue listings NOT confirmation of local stock)
 
 // A2_RF5 — EXISTING HTML / HISTORICAL XLSX OVERSPILL (INACTIVE — preserve for checking)
@@ -1972,7 +1990,6 @@ const INVENTORY=[
   //   Iceland Lamb Chump Chops 360G | 17754 | EDIT UNDER A1_F4_S1
   //   Iceland Lamb Chump Chops 800G | 20798 / 20799 | EDIT UNDER A1_F4_S1
   //   Iceland Lamb Chump Chops with Mint Glaze 360g | 17755 | EDIT UNDER A1_F4_S1
-
 // ------------------------------------------------------------------------------
 // A2_RF6
 // ------------------------------------------------------------------------------
