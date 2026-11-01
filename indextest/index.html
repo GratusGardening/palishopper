@@ -7661,8 +7661,11 @@ function chooseMatch(p,old){
  let result={...p,name:g?g.name:p.raw,selectedName:g?g.name:'',selectedCode:g?g.code:'',options:g?[]:m.choices.map(x=>({name:x.name,code:x.code,recordId:x.id,location:x.locations[0]||''})),
  location:g&&g.locations.length?g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0])[0]:'',possible:g?g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]):[],status:old?.status||'todo',manualLocation:false};
  const stored=overrides[overrideKey(result)];
- if(stored?.location){result.location=stored.location;result.manualLocation=true;result.manualAisle=stored.manualAisle||'';result.possible=[...new Set([...result.possible,result.location])];}
- if(old&&old.manualLocation&&normalize(old.raw)===normalize(p.raw)){
+ // Keep explicit EDIT locations (manualAisle recorded), or a selection still on this exact inventory row.
+ // Discard stale auto-selected locations from older combined inventory groups.
+ if(stored?.location&&(stored.manualAisle||(g&&g.locations.includes(stored.location)))){result.location=stored.location;result.manualLocation=true;result.manualAisle=stored.manualAisle||'';result.possible=[...new Set([...result.possible,result.location])];}
+ if(old&&old.manualLocation&&normalize(old.raw)===normalize(p.raw)&&old.location&&
+    (old.manualAisle||(g&&g.locations.includes(old.location)))){
   result.location=old.location;result.manualLocation=true;result.manualAisle=old.manualAisle||'';result.possible=[...new Set([...result.possible,result.location])];
  }
  return result;
