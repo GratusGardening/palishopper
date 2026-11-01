@@ -7335,14 +7335,20 @@ const list=$('inputlist'), search=$('search');
 const normalize=s=>String(s||'').toLowerCase().replace(/([a-z])'s\b/g,'$1s').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
 const tokens=s=>normalize(s).split(' ').filter(Boolean);
 const locations=s=>[...new Set(String(s||'').split('/').map(x=>x.trim().toUpperCase()).filter(Boolean))];
-const buildInventoryGroups=()=>{const m=new Map();for(const row of INVENTORY){const id=String(row[1])+'|'+normalize(row[0]);if(!m.has(id))m.set(id,{name:row[0],code:String(row[1]),locations:[]});const g=m.get(id);for(const loc of locations(row[2]))if(!g.locations.includes(loc))g.locations.push(loc);}return [...m.values()];};
+// INVENTORY LOCATION RULE: each active inventory row is one independent product-location record.
+// Locations separated by "/" INSIDE ONE row are deliberately configured alternatives.
+// Do not merge other rows merely because their Iceland code and name match.
+const buildInventoryGroups=()=>INVENTORY.map((row,index)=>({
+ id:'inventory-'+index,name:row[0],code:String(row[1]),locations:locations(row[2])
+}));
+
 let groups=buildInventoryGroups();
 let overrides={};try{overrides=JSON.parse(localStorage.getItem(OVERRIDES_KEY)||"{}")}catch{}
 let items=[],picked=null,searchTimer;
 function notify(text){for(const id of ['notice','bottomNotice']){const area=$(id);if(area){area.textContent=text;area.hidden=false;}}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({text:list.value,items}));localStorage.setItem(OVERRIDES_KEY,JSON.stringify(overrides));}catch(e){console.warn(e)}}
 function overrideKey(x){return x.selectedCode&&x.selectedName?'code:'+x.selectedCode+'|'+normalize(x.selectedName):'name:'+normalize(x.raw)}
-function rememberLocation(x){if(x.location){overrides[overrideKey(x)]={location:x.location,possible:x.possible.slice(),manualAisle:x.manualAisle||''};}}
+function rememberLocation(x){if(x.location){overrides[overrideKey(x)]={location:x.location,possible:[x.location],manualAisle:x.manualAisle||''};}}
 
 function score(input,name){const q=tokens(input),p=tokens(name),a=new Set(q),b=new Set(p);let common=0;for(const t of a){if(b.has(t))common++;else for(const v of b){if((t.length>=3&&v.length>=3)&&(v.includes(t)||t.includes(v))){common+=.8;break}}}const nq=normalize(input),np=normalize(name);const coverage=common/Math.max(a.size,b.size,1);return coverage+(np.startsWith(nq)?1:0)+(np.includes(nq)?.22:0)}
 function hasWrongSize(a,b){const x=tokens(a).filter(t=>/^[0-9]+(?:g|kg|ml|l|litres|pack|pk)$/.test(t)),y=new Set(tokens(b));return x.some(t=>!y.has(t))}
@@ -7352,12 +7358,32 @@ function skewerKey(value){
  const ignore=new Set(['iceland','ready','cooked','4','4pk','pk','pack']);
  return words.filter(w=>!ignore.has(w)).map(w=>({skewer:'skewers',peppers:'pepper',onions:'onion'}[w]||w)).join(' ');
 }
+// When a name/code occurs in multiple separate rows, select ONE record in walk order.
+// Never make a combined location list from those rows. Different codes stay unresolved.
+function preferredRecord(records,sameNameKey=g=>normalize(g.name)){
+ if(!records.length)return null;
+ const first=records[0],identity=sameNameKey(first);
+ if(!records.every(g=>g.code===first.code&&sameNameKey(g)===identity))return null;
+ return records.slice().sort((a,b)=>{
+  const al=a.locations[0]||'',bl=b.locations[0]||'',pa=pos(al),pb=pos(bl);
+  return pa[0]-pb[0]||pa[1]-pb[1]||al.localeCompare(bl)||a.id.localeCompare(b.id);
+ })[0];
+}
+function distinctRecords(records){
+ const m=new Map();
+ for(const g of records){
+  const key=g.code+'|'+normalize(g.name);
+  const former=m.get(key);
+  if(!former||preferredRecord([former,g])===g)m.set(key,g);
+ }
+ return [...m.values()];
+}
 function matchSkewers(name){
  const key=skewerKey(name);
  if(!key)return null;
  const same=groups.filter(g=>skewerKey(g.name)===key);
  if(same.length===1)return {group:same[0],choices:[]};
- if(same.length>1)return {group:null,choices:same.slice(0,3)};
+ if(same.length>1){const one=preferredRecord(same);if(one)return {group:one,choices:[]};return {group:null,choices:distinctRecords(same).slice(0,3)}};
  const words=key.split(' '),weight=words.find(w=>/^\d+(?:g|kg|ml|l)$/.test(w))||'';
  const generic=new Set(['chicken','skewers','with','and']);
  const flavour=words.filter(w=>w.length>=3&&!generic.has(w)&&w!==weight);
@@ -7376,7 +7402,7 @@ function matchSkewers(name){
    return {g,shared,s:shared*4+similarity};
  }).sort((a,b)=>b.shared-a.shared||b.s-a.s||a.g.name.localeCompare(b.g.name));
  // A missing exact flavour remains UNRESOLVED; these are possibilities, not a guessed replacement.
- return {group:null,choices:candidates.slice(0,3).map(x=>x.g)};
+ return {group:null,choices:distinctRecords(candidates.map(x=>x.g)).slice(0,3)};
 }
 function productKind(name){
  const n=normalize(name);
@@ -7406,7 +7432,7 @@ function closeAlternatives(name){
   return {g,shared,brandMatch,sizeMatches,sc:score(name,g.name)+shared*.45+(sizeMatches?1:0)+(brandMatch?.7:0)};
  }).filter(o=>o.shared>=Math.min(2,distinctive.length)&&(!wt.length||o.sizeMatches))
  .sort((a,b)=>b.sc-a.sc||a.g.name.localeCompare(b.g.name));
- return candidates.slice(0,3).map(x=>x.g);
+ return distinctRecords(candidates.map(x=>x.g)).slice(0,3);
 }
 const comparableName=value=>normalize(value).split(' ').filter(w=>w!=='approx'&&w!=='bottle').join(' ');
 function matched(name){
@@ -7414,19 +7440,33 @@ function matched(name){
  if(/^\d{3,}$/.test(cleaned)){
   const code=cleaned.replace(/^0+(?=\d)/,'');
   const scanAsUPC=/^0{5,}\d{5,7}$/.test(cleaned);
-  const matchCode=scanAsUPC ? code.slice(0,-1) : code;
-  const exactCode=groups.filter(g=>g.code.split(/\s*\/\s*/).some(c=>c===cleaned||c===matchCode));
-  if(exactCode.length===1)return {group:exactCode[0],choices:[]};
-  if(exactCode.length>1)return {group:null,choices:exactCode.slice(0,3)};
+  const matchCode=scanAsUPC?code.slice(0,-1):code;
+  const found=groups.filter(g=>g.code.split(/\s*\/\s*/).some(c=>c===cleaned||c===matchCode));
+  if(found.length){const one=preferredRecord(found);return one?{group:one,choices:[]}:{group:null,choices:distinctRecords(found).slice(0,3)};}
  }
-const skewerMatch=matchSkewers(name);if(skewerMatch)return skewerMatch;
-const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};
- // Accept the same exact product title when Iceland adds '(Approx.)' or 'Bottle'.
- // Preserve pack size and all other words; never infer locations from a similar product.
+ // Exact full names take priority, with each record's own location(s) kept intact.
+ const exact=groups.filter(g=>normalize(g.name)===normalize(name));
+ if(exact.length){const one=preferredRecord(exact);return one?{group:one,choices:[]}:{group:null,choices:distinctRecords(exact).slice(0,3)};}
+ // Only permit harmless catalogue wording differences: "(Approx.)" and "Bottle".
+ // Weight, size and flavour must still match.
  const exactAlias=groups.filter(g=>comparableName(g.name)===comparableName(name));
- if(exactAlias.length===1)return {group:exactAlias[0],choices:[]};
- if(exactAlias.length>1)return {group:null,choices:exactAlias.slice(0,3)};
- const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});const sameType=filtered.map(x=>x.g).filter(g=>!productKind(name)||productKind(g.name)===productKind(name)).filter(g=>!hasWrongSize(name,g.name)).slice(0,3);return {group:null,choices:sameType.length?sameType:closeAlternatives(name)}}return {group:null,choices:closeAlternatives(name)}}
+ if(exactAlias.length){const one=preferredRecord(exactAlias,comparableName);return one?{group:one,choices:[]}:{group:null,choices:distinctRecords(exactAlias).slice(0,3)};}
+ const skewerMatch=matchSkewers(name);if(skewerMatch)return skewerMatch;
+ const ranked=distinctRecords(groups).map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);
+ if(ranked.length){
+  const a=ranked[0],gap=a.s-(ranked[1]?.s||0);
+  if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};
+  const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));
+  const filtered=ranked.filter(({g})=>{
+   const options=tokens(g.name);
+   const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;
+   return overlap>=Math.min(2,important.length);
+  });
+  const sameType=filtered.map(x=>x.g).filter(g=>!productKind(name)||productKind(g.name)===productKind(name)).filter(g=>!hasWrongSize(name,g.name)).slice(0,3);
+  return {group:null,choices:sameType.length?sameType:closeAlternatives(name)};
+ }
+ return {group:null,choices:closeAlternatives(name)};
+}
 function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const originalBase=l.replace(/_S\d+$/,'');const base=originalBase.replace(/^A5_U(?=\d)/,'A5_LS');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
 function compare(a,b){const unlocatedA=!a.location&&!a.manualLocation,unlocatedB=!b.location&&!b.manualLocation;if(unlocatedA!==unlocatedB)return unlocatedA?1:-1;const x=pos(a.location),y=pos(b.location);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2])||a.i-b.i}
 // Search suggestions only: favour complete words and all query terms over partial matches.
@@ -7458,7 +7498,8 @@ function rankChoices(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{
  const q=search.value.trim(),e=$('suggestions');e.replaceChildren();e.scrollTop=0;picked=null;
  if(q.length<3){e.hidden=true;search.setAttribute('aria-expanded','false');return}
  const byCode=/^\d+$/.test(q);
- const scored=byCode?groups.filter(g=>g.code.startsWith(q)).map(g=>({g,s:g.code===q?2:1})):groups.map(g=>({g,s:searchRelevanceScore(q,g.name)})).filter(x=>x.s>0);
+ const uniqueGroups=distinctRecords(groups);
+ const scored=byCode?uniqueGroups.filter(g=>g.code.startsWith(q)).map(g=>({g,s:g.code===q?2:1})):uniqueGroups.map(g=>({g,s:searchRelevanceScore(q,g.name)})).filter(x=>x.s>0);
  scored.sort((a,b)=>b.s-a.s||a.g.name.localeCompare(b.g.name));
  const top=scored.slice(0,35);
  if(top.length>4){const heading=document.createElement('div');heading.className='suggest-count';heading.textContent=top.length+(scored.length>top.length?'+':'')+' matching products · Scroll for more';e.append(heading)}
@@ -7615,21 +7656,21 @@ function appendOrIncrease(name,amount){
 function parseLine(raw,i){let s=raw.trim(),qty=1;const m=s.match(/^(\d+)\s*[x×]\s+(.+)$/i);if(m){qty=Math.max(1,+m[1]);s=m[2]}return {raw:s,qty,i,id:i+'-'+normalize(s)}}
 function chooseMatch(p,old){
  const m=matched(p.raw);let g=m.group;
- const chosen=old&&old.selectedCode?groups.find(x=>x.code===old.selectedCode&&normalize(x.name)===normalize(old.selectedName)):null;
+ const chosen=old&&old.selectedCode?groups.find(x=>x.code===old.selectedCode&&normalize(x.name)===normalize(old.selectedName)&&x.locations.includes(old.location))||groups.find(x=>x.code===old.selectedCode&&normalize(x.name)===normalize(old.selectedName)):null;
  if(chosen&&(normalize(old.raw)===normalize(p.raw)))g=chosen;
- let result={...p,name:g?g.name:p.raw,selectedName:g?g.name:'',selectedCode:g?g.code:'',options:g?[]:m.choices.map(x=>({name:x.name,code:x.code})),
+ let result={...p,name:g?g.name:p.raw,selectedName:g?g.name:'',selectedCode:g?g.code:'',options:g?[]:m.choices.map(x=>({name:x.name,code:x.code,recordId:x.id,location:x.locations[0]||''})),
  location:g&&g.locations.length?g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0])[0]:'',possible:g?g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]):[],status:old?.status||'todo',manualLocation:false};
  const stored=overrides[overrideKey(result)];
- if(stored?.location){result.location=stored.location;result.manualLocation=true;result.manualAisle=stored.manualAisle||'';result.possible=[...new Set([...(stored.possible||[]),...result.possible,result.location])];}
+ if(stored?.location){result.location=stored.location;result.manualLocation=true;result.manualAisle=stored.manualAisle||'';result.possible=[...new Set([...result.possible,result.location])];}
  if(old&&old.manualLocation&&normalize(old.raw)===normalize(p.raw)){
-  result.location=old.location;result.manualLocation=true;result.manualAisle=old.manualAisle||'';result.possible=[...new Set([...(old.possible||[]),...result.possible,result.location])];
+  result.location=old.location;result.manualLocation=true;result.manualAisle=old.manualAisle||'';result.possible=[...new Set([...result.possible,result.location])];
  }
  return result;
 }
 function create(){if(hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
 $('createBtn').onclick=create;
 function el(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=String(text);return x}
-function chooseProduct(id,code,name){const x=items.find(o=>o.id===id),g=groups.find(g=>g.code===code&&g.name===name&&x.options.some(p=>p.code===g.code&&p.name===g.name));if(!x||!g)return;x.name=g.name;x.selectedName=g.name;x.selectedCode=g.code;x.options=[];x.possible=g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]);x.location=x.possible[0]||'';items.sort(compare);save();draw()}
+function chooseProduct(id,code,name,recordId){const x=items.find(o=>o.id===id);if(!x)return;const selected=x.options.find(p=>p.code===code&&p.name===name&&(!recordId||p.recordId===recordId));if(!selected)return;const g=groups.find(g=>g.id===(recordId||selected.recordId))||groups.find(g=>g.code===code&&g.name===name&&g.locations.includes(selected.location));if(!g)return;x.name=g.name;x.selectedName=g.name;x.selectedCode=g.code;x.options=[];x.possible=g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]);x.location=x.possible[0]||'';items.sort(compare);save();draw()}
 function chooseLocation(id,location){
  const x=items.find(o=>o.id===id);if(!x)return;
  x.location=location;x.manualLocation=true;rememberLocation(x);items.sort(compare);save();draw();
@@ -7827,7 +7868,7 @@ function draw(){
     body.append(el('div','subhead',x.options.length?'POSSIBLE ALTERNATIVES — CHOOSE ONLY IF CORRECT':'NO CONFIDENT MATCH — REVIEW AT END'));
     const options=el('div','alts');
     if(!x.options.length)options.append(el('p','hint','No close alternative confirmed. This item stays at the end of your pick; use EDIT to give it a verified location.'));
-    for(const p of x.options){const b=el('button','',p.name);b.onclick=()=>chooseProduct(x.id,p.code,p.name);options.append(b)}body.append(options);
+    for(const p of x.options){const b=el('button','',p.name+(p.location?' — '+shopLocationLabel(p.location):''));b.onclick=()=>chooseProduct(x.id,p.code,p.name,p.recordId);options.append(b)}body.append(options);
   }else{
     body.append(el('div','subhead','AVAILABLE SHOP LOCATIONS'));
     const locs=el('div','locs');
@@ -8392,7 +8433,7 @@ $('inventoryFile').onchange=async e=>{const f=e.target.files?.[0];e.target.value
  if(persistInventory())invMsg('Inventory edits imported. Original HTML remains unchanged.');
  }catch(err){invMsg('Could not import inventory backup: '+err.message)}};
 
-try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'{}');list.value=saved.text||'';if(Array.isArray(saved.items))items=saved.items.map(x=>x&&x.raw&&!x.selectedCode&&!x.manualLocation&&x.status!=='done'&&x.status!=='skip'?chooseMatch({raw:x.raw,qty:x.qty,i:x.i,id:x.id},x):x);}catch{}draw();renderSavedLists();
+try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'{}');list.value=saved.text||'';if(Array.isArray(saved.items))items=saved.items.map(x=>x&&x.raw?chooseMatch({raw:x.raw,qty:x.qty,i:x.i,id:x.id},x):x);}catch{}draw();renderSavedLists();
 /* Test-only HTML: no service worker registration. */
 
 /* PALiSHoPPER standalone share-and-print test. No live app updates. */
