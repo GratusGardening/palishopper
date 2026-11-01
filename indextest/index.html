@@ -3229,9 +3229,8 @@ const INVENTORY=[
   //   Iceland Southern Fried Chicken Thighs | 90814 | EDIT UNDER A1_RF10
 
 // -------------------------------------------------------------------------------
-// A2_LF7  |  ACTIVE: 27 PRODUCTS
+// A2_LF7  |  ACTIVE: 26 PRODUCTS
 // -------------------------------------------------------------------------------
-  ["Iceland 20 Onion Bhajis 300g","24546","A2_LF7"],
   ["Crown Farms Basa Fish Fillets 800g","100793","A2_LF7"],
   ["Downies of Whitehills Breaded Haddock 450g","101123","A2_LF7"],
   ["Iceland 2 Atlantic Cod Loins with Lemon, Pepper & Parsley Butter 280g","50836","A2_LF7"],
@@ -3272,9 +3271,8 @@ const INVENTORY=[
   //   Iceland 20 Onion Bhajis 300g | 24546 | EDIT UNDER A2_LF1
 
 // -------------------------------------------------------------------------------
-// A2_LF8  |  ACTIVE: 36 PRODUCTS
+// A2_LF8  |  ACTIVE: 35 PRODUCTS
 // -------------------------------------------------------------------------------
-  ["Iceland 20 Onion Bhajis 300g","24546","A2_LF8"],
   ["Crown Farms Basa Fish Fillets 800g","100793","A2_LF8"],
   ["Downies of Whitehills Breaded Haddock 450g","101123","A2_LF8"],
   ["Iceland 2 Atlantic Cod Loins with Lemon, Pepper & Parsley Butter 280g","50836","A2_LF8"],
@@ -7410,6 +7408,7 @@ function closeAlternatives(name){
  .sort((a,b)=>b.sc-a.sc||a.g.name.localeCompare(b.g.name));
  return candidates.slice(0,3).map(x=>x.g);
 }
+const comparableName=value=>normalize(value).split(' ').filter(w=>w!=='approx'&&w!=='bottle').join(' ');
 function matched(name){
  const cleaned=String(name||'').trim();
  if(/^\d{3,}$/.test(cleaned)){
@@ -7421,7 +7420,13 @@ function matched(name){
   if(exactCode.length>1)return {group:null,choices:exactCode.slice(0,3)};
  }
 const skewerMatch=matchSkewers(name);if(skewerMatch)return skewerMatch;
-const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});const sameType=filtered.map(x=>x.g).filter(g=>!productKind(name)||productKind(g.name)===productKind(name)).filter(g=>!hasWrongSize(name,g.name)).slice(0,3);return {group:null,choices:sameType.length?sameType:closeAlternatives(name)}}return {group:null,choices:closeAlternatives(name)}}
+const exact=groups.filter(g=>normalize(g.name)===normalize(name));if(exact.length===1)return {group:exact[0],choices:[]};if(exact.length>1)return {group:null,choices:exact.slice(0,3)};
+ // Accept the same exact product title when Iceland adds '(Approx.)' or 'Bottle'.
+ // Preserve pack size and all other words; never infer locations from a similar product.
+ const exactAlias=groups.filter(g=>comparableName(g.name)===comparableName(name));
+ if(exactAlias.length===1)return {group:exactAlias[0],choices:[]};
+ if(exactAlias.length>1)return {group:null,choices:exactAlias.slice(0,3)};
+ const ranked=groups.map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);if(ranked.length){const a=ranked[0],gap=a.s-(ranked[1]?.s||0);if(a.s>.90&&gap>.20&&!hasWrongSize(name,a.g.name))return {group:a.g,choices:[]};const important=tokens(name).filter(t=>t.length>=4&&!['iceland','with','pack','from','sauce','ready'].includes(t)&&!/^[0-9]/.test(t));const filtered=ranked.filter(({g})=>{const options=tokens(g.name);const overlap=important.filter(w=>options.some(v=>v===w||(w.length>4&&v.length>4&&(w.startsWith(v)||v.startsWith(w))))).length;return overlap>=Math.min(2,important.length)});const sameType=filtered.map(x=>x.g).filter(g=>!productKind(name)||productKind(g.name)===productKind(name)).filter(g=>!hasWrongSize(name,g.name)).slice(0,3);return {group:null,choices:sameType.length?sameType:closeAlternatives(name)}}return {group:null,choices:closeAlternatives(name)}}
 function pos(loc){let l=String(loc||'').replace(/\s/g,'').toUpperCase();if(!/^A[1-6]_(RF|LF|RS|LS|F|U|VEG)/.test(l))return [100000,0,l];const shelf=+(l.match(/_S(\d+)/)||[])[1]||0;const originalBase=l.replace(/_S\d+$/,'');const base=originalBase.replace(/^A5_U(?=\d)/,'A5_LS');if(ROUTE_INDEX[base]!=null)return [ROUTE_INDEX[base],shelf,l];const m=base.match(/^(A\d+_[A-Z]+)(\d+)$/);if(m){let best=null;for(const [i,s] of STORE_ROUTE.entries()){const sm=s.match(/^(A\d+_[A-Z]+)(\d+)$/);if(sm&&sm[1]===m[1]){const d=Math.abs(+sm[2]-(+m[2]));if(!best||d<best.d)best={i,d,n:+sm[2]}}}if(best)return [best.i+((+m[2])-best.n)*.001,shelf,l]}return [STORE_ROUTE.length+25,shelf,l]}
 function compare(a,b){const unlocatedA=!a.location&&!a.manualLocation,unlocatedB=!b.location&&!b.manualLocation;if(unlocatedA!==unlocatedB)return unlocatedA?1:-1;const x=pos(a.location),y=pos(b.location);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2])||a.i-b.i}
 // Search suggestions only: favour complete words and all query terms over partial matches.
