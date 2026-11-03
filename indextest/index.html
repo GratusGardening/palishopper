@@ -8626,7 +8626,7 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
  q('rtPrint').onclick=()=>{if(!items.length){message('Add products above before printing.');return}refresh();window.print()};
  // Copy and share the plain input text, not picked/unpicked report data.
  // The recipient can paste this directly into PALiSHoPPER for their own walkthrough.
- const currentPlainList=()=>q('list').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).join('\n');
+ const currentPlainList=()=>q('inputlist').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).join('\n');
  const getShareText=()=>{
   const t=currentPlainList();
   if(!t){message('Add products to the input box above first.');return '';}
