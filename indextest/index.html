@@ -208,7 +208,7 @@
     <button type="button" id="rtPrint">🖨️ PRINT</button>
   </div>
   <input type="file" id="importNamedFile" accept=".txt,.json,text/plain,application/json" hidden aria-label="Choose saved shopping list backup">
-  <p class="saved-note">COPY LIST and SHARE send the same simple shopping list, ready to paste into PALiSHoPPER.app. SHARE opens your phone's sharing menu; COPY LIST copies it to the clipboard. SHARE IMAGE and PRINT keep the full shopping report. Saved lists remain on this device.</p>
+  <p class="saved-note">SHARE sends plain text without the trolley graphic. SHARE IMAGE preserves the trolley and tick boxes. PRINT uses your phone's printing controls. Saved lists remain on this device.</p>
   <section id="receiptTest" aria-label="Shopping receipt preview">
    <h2>SHOPPING REPORT PREVIEW</h2>
    <p>✔ In trolley: marked and location shown. □ Not in trolley: unticked and location left blank, ready to buy elsewhere.</p>
@@ -7777,14 +7777,7 @@ function appendOrIncrease(name,amount){
  if(!found)arr.push((amount>1?amount+' x ':'')+clean);
  list.value=arr.filter(x=>x.trim()).join('\n');save();
 }
-function parseLine(raw,i){
- let s=raw.trim(),qty=1;
- const leading=s.match(/^(\d+)\s*[x×]\s+(.+)$/i);
- const trailing=s.match(/^(.+?)\s+[x×]\s*(\d+)$/i);
- if(leading){qty=Math.max(1,+leading[1]);s=leading[2]}
- else if(trailing){qty=Math.max(1,+trailing[2]);s=trailing[1]}
- return {raw:s,qty,i,id:i+'-'+normalize(s)};
-}
+function parseLine(raw,i){let s=raw.trim(),qty=1;const m=s.match(/^(\d+)\s*[x×]\s+(.+)$/i);if(m){qty=Math.max(1,+m[1]);s=m[2]}return {raw:s,qty,i,id:i+'-'+normalize(s)}}
 function chooseMatch(p,old){
  const m=matched(p.raw);let g=m.group;
  const chosen=old&&old.selectedCode?groups.find(x=>x.code===old.selectedCode&&normalize(x.name)===normalize(old.selectedName)&&x.locations.includes(old.location))||groups.find(x=>x.code===old.selectedCode&&normalize(x.name)===normalize(old.selectedName)):null;
@@ -7801,7 +7794,7 @@ function chooseMatch(p,old){
  }
  return result;
 }
-function create(){if(hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!/^PALiSHoPPER\.app\s*[—–-]\s*SHOPPING LIST$/i.test(x));if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
+function create(){if(hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
 $('createBtn').onclick=create;
 function el(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=String(text);return x}
 function chooseProduct(id,code,name,recordId){const x=items.find(o=>o.id===id);if(!x)return;const selected=x.options.find(p=>p.code===code&&p.name===name&&(!recordId||p.recordId===recordId));if(!selected)return;const g=groups.find(g=>g.id===(recordId||selected.recordId))||groups.find(g=>g.code===code&&g.name===name&&g.locations.includes(selected.location));if(!g)return;x.name=g.name;x.selectedName=g.name;x.selectedCode=g.code;x.options=[];x.possible=g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]);x.location=x.possible[0]||'';items.sort(compare);save();draw()}
@@ -8171,38 +8164,15 @@ for(const [id,func] of [
  ['renameNamedList',renameNamedList],['deleteNamedList',deleteNamedList],
 
 ])$(id+'Bottom').onclick=func;
-// COPY LIST and SHARE use identical, paste-ready text. Keep locations and statuses in the walkthrough, not in the shared input.
-const SHARED_LIST_HEADING='PALiSHoPPER.app — SHOPPING LIST';
-function shareableRows(){
- if(items.length)return items.slice().sort(compare);
- const typed=list.value.split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!/^PALiSHoPPER\.app\s*[—–-]\s*SHOPPING LIST$/i.test(x));
- if(typed.length)return typed.map((x,i)=>parseLine(x,i));
- const saved=namedSelected();
- if(Array.isArray(saved?.items)&&saved.items.length)return saved.items;
- return (saved?.text||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map((x,i)=>parseLine(x,i));
-}
-function pasteReadyList(source){
- const rows=source.filter(x=>x&&String(x.name||x.raw||'').trim());
- if(!rows.length)return '';
- const lines=rows.map(x=>{
-  const name=String(x.name||x.raw).trim().replace(/\s+[x×]\s*\d+$/i,'');
-  const qty=Math.max(1,Math.floor(Number(x.qty)||1));
-  return name+(qty>1?' x'+qty:'');
- });
- return [SHARED_LIST_HEADING,'',...lines].join('\n');
-}
-async function copyListToClipboard(text){
- if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return;}catch(e){}}
- const tmp=document.createElement('textarea');
- tmp.value=text;tmp.setAttribute('readonly','');tmp.style.position='fixed';tmp.style.left='-9999px';
- document.body.append(tmp);tmp.focus();tmp.select();
- try{if(!document.execCommand('copy'))throw Error('Clipboard unavailable');}finally{tmp.remove();}
-}
 $('copyNamedListBottom').onclick=async()=>{
- const t=pasteReadyList(shareableRows());
- if(!t){notify('Add products before copying your shopping list.');return;}
- try{await copyListToClipboard(t);notify('Shopping list copied. Paste into PALiSHoPPER.app and press CREATE WALKTHROUGH.');}
- catch(e){notify('Clipboard unavailable. Try SHARE, or copy directly from the input box.');}
+ const n=namedSelected();if(!n){notify('Choose a saved list to copy.');return;}
+ const text=n.text||n.items?.map(x=>(x.qty>1?x.qty+' x ':'')+(x.raw||x.name)).join('\n')||'';
+ if(!text.trim()){notify('This saved list is empty.');return;}
+ try{
+  if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text)}
+  else {const tmp=document.createElement('textarea');tmp.value=text;tmp.style.position='fixed';tmp.style.left='-9999px';document.body.append(tmp);tmp.select();if(!document.execCommand('copy'))throw Error('Clipboard unavailable');tmp.remove()}
+  notify('Copied "'+n.name+'" to clipboard.');
+ }catch(e){notify('Clipboard blocked by browser. Open the saved list and long-press to copy its text.');}
 };
 $('importNamedListBottom').onclick=()=>$('importNamedFile').click();
 $('importNamedFile').onchange=async e=>{
@@ -8617,7 +8587,9 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
   paper.append(node('div','rt-foot','A SMARTER SHOPPING DAY • FOR MORE US TIME'));
  }
  function textReport(){
-  return pasteReadyList(shareableRows());
+  const a=rows(),n=info(a),lines=['PALiSHoPPER SHOPPING REPORT',title(),date(),n.done+' PICKED | '+n.remaining+' STILL TO GET','--------------------------------'];
+  for(const x of a){lines.push((x.status==='done'?'[X] ':'[ ] ')+prod(x)+(Number(x.qty)>1?' x'+x.qty:''));if(loc(x))lines.push('    '+loc(x));lines.push('');}
+  return lines.join('\n');
  }
  function wrapped(ctx,str,width){
   const result=[];let current='';
@@ -8645,16 +8617,12 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
  q('rtName').oninput=refresh;q('rtSize').onchange=refresh;
  q('rtPrint').onclick=()=>{if(!items.length){message('Add products above before printing.');return}refresh();window.print()};
  q('shareShoppingListBottom').onclick=async()=>{
-  const t=textReport();
-  if(!t){message('Add products above before sharing.');return}
-  try{
-   if(navigator.share)await navigator.share({title:'PALiSHoPPER.app — SHOPPING LIST',text:t});
-   else {await copyListToClipboard(t);message('Sharing unavailable. Shopping list copied instead.');}
-  }catch(e){
-   if(e.name==='AbortError')return;
-   try{await copyListToClipboard(t);message('Sharing unavailable. Shopping list copied instead.');}
-   catch(err){message('Could not share or copy. Try COPY LIST.');}
-  }
+  if(!items.length){message('Add products above before sharing.');return}
+  const t=textReport(); // Text-only shopping report: no trolley image or app-specific branding.
+  try{if(navigator.share)await navigator.share({title:'Shopping List',text:t});
+  else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(t);message('Sharing unavailable. Text copied to clipboard instead.');}
+  else message('Native sharing is unavailable here. Use COPY LIST instead.');}
+  catch(e){if(e.name!=='AbortError')message('Could not share: '+e.message)}
  };
  q('rtShareImage').onclick=async()=>{
   if(!items.length){message('Add products above before sharing.');return}
