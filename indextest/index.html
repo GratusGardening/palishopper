@@ -201,14 +201,14 @@
     <button type="button" id="openNamedListBottom">📂 OPEN</button>
     <button type="button" id="renameNamedListBottom">📝 RENAME</button>
     <button type="button" id="copyNamedListBottom">📑 COPY SAVED LIST</button><button type="button" id="copyCurrentListBottom">📋 COPY CURRENT LIST</button>
-    <button type="button" id="shareShoppingListBottom">📤 SHARE LIST</button>
+    <button type="button" id="shareShoppingListBottom">📤 SHARE LIST</button><button type="button" id="pasteCurrentListBottom">📥 PASTE LIST</button>
     <button type="button" id="importNamedListBottom">📤 IMPORT BACKUP</button>
     <button type="button" id="deleteNamedListBottom">🗑️ DELETE</button>
     <button type="button" id="rtShareImage">🏞️ SHARE IMAGE</button>
     <button type="button" id="rtPrint">🖨️ PRINT</button>
   </div>
   <input type="file" id="importNamedFile" accept=".txt,.json,text/plain,application/json" hidden aria-label="Choose saved shopping list backup">
-  <p class="saved-note">COPY CURRENT LIST and SHARE LIST use the input box above: product names and quantities only, with no shelf locations, ticks or crosses. SHARE IMAGE and PRINT are separate picking reports. Saved lists remain on this device.</p>
+  <p class="saved-note">COPY CURRENT LIST and SHARE LIST use the input box above: product names and quantities only, with no shelf locations, ticks or crosses. PASTE LIST puts clipboard text into the input box. SHARE IMAGE and PRINT are separate picking reports. Saved lists remain on this device.</p>
   <section id="receiptTest" aria-label="Shopping receipt preview">
    <h2>SHOPPING REPORT PREVIEW</h2>
    <p>✔ In trolley: marked and location shown. □ Not in trolley: unticked and location left blank, ready to buy elsewhere.</p>
@@ -8644,6 +8644,27 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
   const t=getShareText();if(!t)return;
   try{await copyPlainList(t);message('Current shopping list copied — products and quantities only.');}
   catch(e){message('Could not copy this list: '+e.message);}
+ };
+ q('pasteCurrentListBottom').onclick=async()=>{
+  // Clipboard read requires HTTPS and browser permission; do not erase the existing list on failure.
+  if(!navigator.clipboard?.readText){
+   message('Automatic paste is unavailable in this browser. Tap the input box above, then long-press and choose Paste.');
+   return;
+  }
+  try{
+   const clipboardText=await navigator.clipboard.readText();
+   if(!clipboardText.trim()){message('Your clipboard has no shopping list text to paste.');return;}
+   const input=q('inputlist');
+   if(input.value.trim() && input.value.trim()!==clipboardText.trim() &&
+     !confirm('Replace the current input box with your copied list? Saved shopping lists will not be deleted.'))return;
+   input.value=clipboardText;
+   input.dispatchEvent(new Event('input',{bubbles:true}));
+   const count=clipboardText.split(/\r?\n/).filter(x=>x.trim()).length;
+   message('Pasted '+count+' line'+(count===1?'':'s')+' into the input box. Press CREATE SHOP WALKTHROUGH when ready.');
+   input.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(err){
+   message('Clipboard permission was blocked. Tap the input box above, then long-press and choose Paste.');
+  }
  };
  q('shareShoppingListBottom').onclick=async()=>{
   const t=getShareText();if(!t)return;
