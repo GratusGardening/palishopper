@@ -8479,7 +8479,7 @@ const isPastDeal=name=>{
  return today>last;
 };
 const dealChoiceMap=new Map();
-for(const name of Object.keys(SHOP_DEALS))$('dealSelect').add(new Option(name,name));
+for(const name of Object.keys(SHOP_DEALS))if(name!=='FROZEN 8 FOR £10')$('dealSelect').add(new Option(name,name));
 $('dealSelect').onchange=()=>{dealChoiceMap.clear();renderDealRows();};
 function renderDealRows(){
  const name=$('dealSelect').value, steps=SHOP_DEALS[name]||[],$steps=$('dealSteps');
