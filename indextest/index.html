@@ -8780,7 +8780,7 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
  if(!SpeechRecognition){start.disabled=true;status.textContent='Voice recognition is unavailable in this browser. Open INDEXTEST in Chrome and try again.';return;}
  let recognition=null,active=false,commandIssued=false;
  const setStatus=t=>{status.textContent=t;};
- const append=t=>{t=t.trim();if(!t)return;input.value+=(input.value.trim()?'\\n':'')+t;input.dispatchEvent(new Event('input',{bubbles:true}));};
+ const append=t=>{t=t.trim();if(!t)return;input.value+=(input.value.trim()?'\n':'')+t;input.dispatchEvent(new Event('input',{bubbles:true}));};
  const stopListening=()=>{active=false;start.disabled=false;stop.disabled=true;if(recognition)recognition.stop();};
  start.addEventListener('click',()=>{
   if(active)return;recognition=new SpeechRecognition();recognition.lang='en-GB';recognition.continuous=true;recognition.interimResults=false;active=true;commandIssued=false;start.disabled=true;stop.disabled=false;setStatus('Listening… say products, then “create walkthrough”.');
