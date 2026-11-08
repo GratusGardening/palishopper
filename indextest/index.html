@@ -160,6 +160,17 @@
 #shopperProductDialog #spSave{background:#008633;color:#fff}
 #shopperProductDialog .sp-note{font-size:12px;color:#67736d;margin:8px 0}
 
+/* INDEXTEST ONLY — optional spoken shop walkthrough, no inventory changes. */
+#spokenWalkthroughPanel{margin:10px 0 12px;padding:11px 12px;border:2px solid #098443;border-radius:14px;background:#f5fff7;color:#163b29}
+#spokenWalkthroughPanel[hidden]{display:none}
+#spokenWalkthroughPanel .spoken-title{font-size:16px;font-weight:850;margin-bottom:6px}
+#spokenWalkthroughPanel .spoken-actions{display:flex;gap:7px;flex-wrap:wrap}
+#spokenWalkthroughPanel button{padding:10px 12px;min-height:43px;font-weight:800;border-radius:10px;border:1px solid #c4d9cb;background:#fff;color:#145132}
+#spokenWalkthroughPanel #spokenWalkthroughStart{flex:1 1 175px;background:#00853c;color:#fff;border-color:#00853c}
+#spokenWalkthroughPanel button:disabled{opacity:.48}
+#spokenWalkthroughStatus{font-size:12px;line-height:1.35;margin-top:7px;color:#305342}
+#cards .card.spoken-current{outline:3px solid #078648;outline-offset:2px}
+
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head><body><main class="app"><div id="testModeBanner" role="status" style="background:#fff2b6;color:#312000;font:bold 16px/1.4 Arial,sans-serif;text-align:center;border:3px solid #d19b00;border-radius:12px;padding:12px;margin:5px 0 12px">🧪 PALiSHoPPER INDEXTEST — CHANGES HERE DO NOT UPDATE THE LIVE HOME PAGE</div>
@@ -195,6 +206,15 @@
 </section>
 
 <div id="notice" class="notice" role="status" hidden></div><div id="progress" class="progress" hidden></div>
+<section id="spokenWalkthroughPanel" aria-label="Spoken shopping walkthrough" hidden>
+<div class="spoken-title">🔊 SPOKEN SHOP WALKTHROUGH</div>
+<div class="spoken-actions">
+<button id="spokenWalkthroughStart" type="button">▶ START SPOKEN WALKTHROUGH</button>
+<button id="spokenWalkthroughRepeat" type="button" disabled>↻ REPEAT</button>
+<button id="spokenWalkthroughStop" type="button" disabled>■ STOP</button>
+</div>
+<div id="spokenWalkthroughStatus" role="status" aria-live="polite">Press Start to hear each product and its location. Tap IN TROLLEY or SKIP ITEM to hear the next one.</div>
+</section>
 <div id="cards" class="cards" aria-live="polite"></div>
 <div id="summary" class="summary" hidden></div>
 <button id="finishShop" class="finish-shop" type="button" hidden>FINISH SHOP / CLEAR LIST</button>
@@ -7971,15 +7991,15 @@ function chooseMatch(p,old){
  }
  return result;
 }
-function create(){if(hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
+function create(){if(spokenActive)spokenStopGuide('Walkthrough rebuilt. Press Start to hear your list.');if(hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
 $('createBtn').onclick=create;
 function el(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=String(text);return x}
-function chooseProduct(id,code,name,recordId){const x=items.find(o=>o.id===id);if(!x)return;const selected=x.options.find(p=>p.code===code&&p.name===name&&(!recordId||p.recordId===recordId));if(!selected)return;const g=groups.find(g=>g.id===(recordId||selected.recordId))||groups.find(g=>g.code===code&&g.name===name&&g.locations.includes(selected.location));if(!g)return;x.name=g.name;x.selectedName=g.name;x.selectedCode=g.code;x.options=[];x.possible=g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]);x.location=x.possible[0]||'';items.sort(compare);save();draw()}
+function chooseProduct(id,code,name,recordId){const x=items.find(o=>o.id===id);if(!x)return;const selected=x.options.find(p=>p.code===code&&p.name===name&&(!recordId||p.recordId===recordId));if(!selected)return;const g=groups.find(g=>g.id===(recordId||selected.recordId))||groups.find(g=>g.code===code&&g.name===name&&g.locations.includes(selected.location));if(!g)return;x.name=g.name;x.selectedName=g.name;x.selectedCode=g.code;x.options=[];x.possible=g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]);x.location=x.possible[0]||'';items.sort(compare);save();draw();spokenReannounceIfCurrent(id)}
 function chooseLocation(id,location){
  const x=items.find(o=>o.id===id);if(!x)return;
- x.location=location;x.manualLocation=true;rememberLocation(x);items.sort(compare);save();draw();
+ x.location=location;x.manualLocation=true;rememberLocation(x);items.sort(compare);save();draw();spokenReannounceIfCurrent(id);
 }
-function status(id,v){const x=items.find(o=>o.id===id);if(!x)return;if(v==='done'&&!x.selectedCode&&!x.manualLocation&&!x.location){notify('Choose the correct product before adding to trolley.');return}x.status=x.status===v?'todo':v;save();draw()}
+function status(id,v){const x=items.find(o=>o.id===id);if(!x)return;if(v==='done'&&!x.selectedCode&&!x.manualLocation&&!x.location){notify('Choose the correct product before adding to trolley.');return}x.status=x.status===v?'todo':v;save();draw();spokenAdvanceAfterStatus(x)}
 // Three independent, mobile-native prompts, matching the PALiPiCKER edit steps.
 // No product codes are requested from customers or changed in the master inventory.
 function editLocationForPrompt(loc){
@@ -8123,10 +8143,11 @@ function deleteFromList(id){
  lines.splice(x.i,1);list.value=lines.join('\n');
  items=items.filter(o=>o!==x);
  for(const it of items){if(it.i>x.i){it.i--;it.id=it.i+'-'+normalize(it.raw)}}
- items.sort(compare);save();draw();notify('Item deleted from this shopping list.');
+ items.sort(compare);save();draw();if(spokenActive&&spokenCurrentId===id)spokenSpeakNext('Next stop.');notify('Item deleted from this shopping list.');
 }
 function finishShop(){
  if(!confirm('Finished shopping? Clear your current shopping list, walkthrough and trolley progress? Your saved location corrections will remain.'))return;
+ spokenStopGuide('Shopping finished.');
  list.value='';search.value='';items=[];picked=null;
  $('suggestions').hidden=true;$('cleanReport').hidden=true;
  try{localStorage.removeItem(KEY)}catch(e){console.warn(e)}
@@ -8152,17 +8173,137 @@ function shopLocationLabel(loc){
  const m=s.match(/^A5_(?:U|LS)(\d+)(?:_S(\d+))?$/);
  return m?'A5 LEFT SHELF '+m[1]+(m[2]?' · LEVEL '+m[2]:''):s;
 }
+
+// INDEXTEST ONLY: user-initiated device text-to-speech; do not change inventory or auto-pick items.
+let spokenActive=false,spokenCurrentId='',spokenSpeechToken=0;
+const spokenPanel=$('spokenWalkthroughPanel');
+const spokenStart=$('spokenWalkthroughStart');
+const spokenRepeat=$('spokenWalkthroughRepeat');
+const spokenStop=$('spokenWalkthroughStop');
+const spokenStatus=$('spokenWalkthroughStatus');
+const spokenSupported=typeof window.speechSynthesis!=='undefined'&&typeof window.SpeechSynthesisUtterance!=='undefined';
+function spokenUpdateControls(){
+ const available=items.length>0;
+ spokenPanel.hidden=!available;
+ spokenStart.disabled=!available||!spokenSupported||spokenActive;
+ spokenRepeat.disabled=!spokenActive;
+ spokenStop.disabled=!spokenActive;
+ if(!spokenSupported)spokenStatus.textContent='Spoken guidance is not supported by this browser. Try opening INDEXTEST in Chrome.';
+}
+function spokenHighlightCurrent(){
+ for(const card of $('cards').children){
+  card.classList.toggle('spoken-current',spokenActive&&card.dataset.spokenId===spokenCurrentId);
+ }
+}
+function spokenCancelAudio(){
+ ++spokenSpeechToken;
+ if(spokenSupported){try{window.speechSynthesis.cancel()}catch(e){console.warn('Audio stop:',e)}}
+}
+function spokenStopGuide(message){
+ spokenCancelAudio();
+ spokenActive=false;spokenCurrentId='';
+ spokenUpdateControls();
+ spokenHighlightCurrent();
+ spokenStatus.textContent=message||'Stopped. Tap START to resume from the first unfinished item.';
+}
+function spokenLocationText(item){
+ const ld=locationDisplay(item.location,item.manualAisle);
+ if(!item.location||ld.type==='NOT KNOWN'||ld.type===''){
+  return 'Location not yet confirmed. Choose the correct alternative or use Edit to enter its location.';
+ }
+ if(String(item.location).trim().toUpperCase()==='A6_U13')return 'Aisle 6, by the till.';
+ const aisle=ld.aisle&&ld.aisle!=='?'?'Aisle '+ld.aisle.replace(/^A/,'')+', ':'';
+ const place=String(ld.type||'location').toLowerCase()+(ld.number?' '+ld.number:'');
+ const shelf=ld.shelf?', '+String(ld.levelLabel||'shelf').toLowerCase()+' '+ld.shelf:'';
+ return aisle+place+shelf+'.';
+}
+function spokenSay(text){
+ if(!spokenSupported)return;
+ const token=++spokenSpeechToken;
+ try{
+  window.speechSynthesis.cancel();
+  const utterance=new SpeechSynthesisUtterance(text);
+  utterance.lang='en-GB';utterance.rate=0.92;utterance.pitch=1;utterance.volume=1;
+  const uk=window.speechSynthesis.getVoices().find(v=>/^en[-_]GB/i.test(v.lang));
+  if(uk)utterance.voice=uk;
+  utterance.onend=()=>{
+   if(spokenActive&&token===spokenSpeechToken){
+    spokenStatus.textContent='Waiting — tap IN TROLLEY or SKIP ITEM on the highlighted product to hear the next one.';
+   }
+  };
+  utterance.onerror=e=>{
+   if(spokenActive&&token===spokenSpeechToken){
+    spokenStatus.textContent='Could not play speech ('+(e.error||'browser error')+'). Tap REPEAT or try Chrome.';
+   }
+  };
+  window.speechSynthesis.speak(utterance);
+ }catch(e){spokenStatus.textContent='Speech unavailable: '+e.message+'. Try Chrome.'}
+}
+function spokenAnnounceItem(item,intro){
+ spokenCurrentId=item.id;
+ spokenHighlightCurrent();
+ const still=items.filter(x=>x.status!=='done'&&x.status!=='skip');
+ const ordinal=items.filter(x=>x.status!=='done'&&x.status!=='skip').indexOf(item)+1;
+ const product=String(item.name||item.raw||'product');
+ const quantity=Number(item.qty)||1;
+ const message=(intro||'Next stop.')+' '+spokenLocationText(item)+' '+product+'. Quantity '+quantity+'.'+
+  ((!item.selectedCode&&!item.manualLocation)?' Please check the possible alternatives if needed.':'')+
+  ' Tap In Trolley or Skip Item when you are ready.';
+ spokenStatus.textContent='Current item: '+product+' ('+ordinal+' of '+still.length+' remaining). Waiting for your selection after the announcement.';
+ spokenSay(message);
+}
+function spokenSpeakNext(intro){
+ if(!spokenActive)return;
+ const next=items.slice().sort(compare).find(x=>x.status!=='done'&&x.status!=='skip');
+ if(!next){
+  spokenCurrentId='';spokenHighlightCurrent();
+  spokenSay('That is the end of your shopping walkthrough. All items have been picked or skipped.');
+  spokenActive=false;spokenUpdateControls();
+  spokenStatus.textContent='Walkthrough complete — all items picked or skipped.';
+  return;
+ }
+ spokenAnnounceItem(next,intro);
+}
+function spokenAdvanceAfterStatus(item){
+ if(!spokenActive||item.id!==spokenCurrentId)return;
+ if(item.status==='done'||item.status==='skip'){
+  spokenSpeakNext('Next stop.');
+ }else{
+  spokenStatus.textContent='Item returned to the list. Tap REPEAT to hear it again.';
+ }
+}
+function spokenReannounceIfCurrent(id){
+ if(!spokenActive||spokenCurrentId!==id)return;
+ const item=items.find(x=>x.id===id);
+ if(item)spokenAnnounceItem(item,'Updated location.');
+}
+spokenStart.addEventListener('click',()=>{
+ if(!spokenSupported){spokenStatus.textContent='Speech is not supported in this browser.';return}
+ if(!items.length){spokenStatus.textContent='Create a walkthrough first.';return}
+ spokenActive=true;spokenCurrentId='';
+ spokenUpdateControls();
+ spokenSpeakNext('Welcome to PALiSHoPPER. Your spoken shopping walkthrough is ready. First stop.');
+});
+spokenRepeat.addEventListener('click',()=>{
+ if(!spokenActive)return;
+ const current=items.find(x=>x.id===spokenCurrentId);
+ if(current)spokenAnnounceItem(current,'Repeating.');
+ else spokenSpeakNext('Next stop.');
+});
+spokenStop.addEventListener('click',()=>spokenStopGuide());
+
 function draw(){
  items.sort(compare); // Keep legacy A5_U positions and edited locations in actual walk order.
  const out=$('cards'),bar=$('progress'),box=$('summary');out.innerHTML='';
  $('finishShop').hidden=!items.length;
- if(!items.length){bar.hidden=true;box.hidden=true;return}
+ if(!items.length){bar.hidden=true;box.hidden=true;if(spokenActive)spokenStopGuide('Shopping list cleared.');else spokenUpdateControls();return}
  bar.hidden=false;
+ spokenUpdateControls();
  const n=items.filter(x=>x.status==='done').length,k=items.filter(x=>x.status==='skip').length;
  const needs=items.filter(x=>!x.selectedCode&&!x.manualLocation).length;
  bar.textContent=items.length+' products · '+n+' in trolley · '+k+' skipped · '+(items.length-n-k)+' still to shop'+(needs?' · '+needs+' to confirm':'');
  for(const x of items){
-  const card=el('article','card'+(x.status==='done'?' done':'')+(x.status==='skip'?' skip':''));
+  const card=el('article','card'+(x.status==='done'?' done':'')+(x.status==='skip'?' skip':''));card.dataset.spokenId=x.id;card.classList.toggle('spoken-current',spokenActive&&spokenCurrentId===x.id);
   const aside=el('div','aisle'),ld=locationDisplay(x.location,x.manualAisle);
   aside.append(el('small','','AISLE'),el('strong','',ld.aisle),el('small','',ld.label),el('div','unit-word',ld.type));
   if(ld.number)aside.append(el('div','unit-number',ld.number));
