@@ -1828,7 +1828,7 @@ const INVENTORY=[
   ["Cathedral City Our Cheesy Hash Brown Pockets 6 Pack","","A2_LF3"],
   ["Cathedral City Our Cheesy Baked Mash 400g","","A2_LF3"],
   ["Cathedral City Our Mac 'n' Cheese 400g","88084","A2_LF3"],
-  ["Cathedral City Our Cheesy Cauliflower Cheese 450g","","A2_LF3"],
+  ["Cathedral City Our Cauliflower Cheese 450g","88310","A2_LF3"],
   ["Cathedral City Our Cheesy Bolognese Pasta Bake 400g","23239","A2_LF3"],
   ["Cathedral City Our Cheesy Cottage Pie 400g","91565","A2_LF3"],
   ["Cathedral City Our Cheesy Lasagne 400g","33983","A2_LF3"],
@@ -2849,7 +2849,7 @@ const INVENTORY=[
   ["The Pastry Pantry The Deli 2 Hog Roast Sausage Rolls","56685","A4_F1"],
   ["Wall's Medium Pork Pie 295g","94668","A4_F1"],
   ["Fridge Raiders Southern Style Chicken Bites","54284","A4_F1_S5"],
-  ["Cathedral City Our Mac 'n' Cheese 400g","88084","A4_F1_S2"],
+
   ["Wall's 4 Mini Sweet Chilli Topped Pork Pies 200g","105923","A4_F1"],
   ["Wall's 6 Mini Pork Pies 300g","94667","A4_F1"],
   ["Rustlers BBQ Burger","105701","A4_F1"],
@@ -7564,6 +7564,9 @@ const INVENTORY=[
 
 // -------------------------------------------------------------------------------
 // HISTORICAL SOURCE SECTION: A4_F1 — INACTIVE / REFERENCE ONLY
+// PHOTOGRAPH REVIEW 08 NOV 2026: A4_F1_S2 copy of Cathedral City Mac 'n' Cheese
+// (code 88084) retired from active matching; confirmed stocked freezer is A2_LF3.
+// PRIOR ACTIVE, NOW ARCHIVED: ["Cathedral City Our Mac 'n' Cheese 400g","88084","A4_F1_S2"]
 // -------------------------------------------------------------------------------
 // OVERSPILL — NOT IN DEAL (01 NOV 2026): ["Wall's 4 Mini Pickle Topped Pork Pies 200g","105925","A4_F1"]
 // OVERSPILL — NOT IN DEAL (01 NOV 2026): ["Iceland 23 (Approx.) Smoky BBQ Chicken Balls 161g","53253","A4_F1"]
@@ -8557,6 +8560,19 @@ function matched(name){
  // Weight, size and flavour must still match.
  const exactAlias=groups.filter(g=>comparableName(g.name)===comparableName(name));
  if(exactAlias.length){const one=preferredRecord(exactAlias,comparableName);return one?{group:one,choices:[]}:{group:null,choices:distinctRecords(exactAlias).slice(0,3)};}
+ // Verified packaging aliases only: these omit catalogue wording but retain exact size/code.
+ // Do not broadly strip "Our"/"Cheesy" from other brands or similar products.
+ const photoConfirmedAliases={
+  'cathedral city mac n cheese 400g':{code:'88084',location:'A2_LF3'},
+  'cathedral city cheesy mac n cheese 400g':{code:'88084',location:'A2_LF3'},
+  'cathedral city cauliflower cheese 450g':{code:'88310',location:'A2_LF3'},
+  'cathedral city our cheesy cauliflower cheese 450g':{code:'88310',location:'A2_LF3'}
+ };
+ const photoAlias=photoConfirmedAliases[normalize(name)];
+ if(photoAlias){
+  const verified=groups.filter(g=>g.code===photoAlias.code&&g.locations.length===1&&g.locations[0]===photoAlias.location);
+  if(verified.length===1)return {group:verified[0],choices:[]};
+ }
  const skewerMatch=matchSkewers(name);if(skewerMatch)return skewerMatch;
  const ranked=distinctRecords(groups).map(g=>({g,s:score(name,g.name)})).filter(x=>x.s>.20).sort((a,b)=>b.s-a.s).slice(0,5);
  if(ranked.length){
