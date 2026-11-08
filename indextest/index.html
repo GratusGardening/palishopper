@@ -8789,7 +8789,18 @@ function appendOrIncrease(name,amount){
  if(!found)arr.push((amount>1?amount+' x ':'')+clean);
  list.value=arr.filter(x=>x.trim()).join('\n');save();
 }
-function parseLine(raw,i){let s=raw.trim(),qty=1;const m=s.match(/^(\d+)\s*[x×]\s+(.+)$/i);if(m){qty=Math.max(1,+m[1]);s=m[2]}return {raw:s,qty,i,id:i+'-'+normalize(s)}}
+function parseLine(raw,i){
+ let s=raw.trim(),qty=1;
+ // A shopping-list quantity may be at the front (3 x Product) or end (Product x3).
+ // Keep pack sizes such as 24 x 330ml and 2 x 155g as part of the product.
+ const front=s.match(/^(\d+)\s*[x×]\s+(.+)$/i);
+ const frontX=s.match(/^[x×]\s*(\d+)\s+(.+)$/i);
+ const end=s.match(/^(.+?)\s+[x×]\s*(\d+)$/i);
+ if(front){qty=Math.max(1,+front[1]);s=front[2].trim()}
+ else if(frontX){qty=Math.max(1,+frontX[1]);s=frontX[2].trim()}
+ else if(end&&!/\d+\s*$/.test(end[1])){qty=Math.max(1,+end[2]);s=end[1].trim()}
+ return {raw:s,qty,i,id:i+'-'+normalize(s)}
+}
 function chooseMatch(p,old){
  const m=matched(p.raw);let g=m.group;
  const chosen=old&&old.selectedCode?groups.find(x=>x.code===old.selectedCode&&normalize(x.name)===normalize(old.selectedName)&&x.locations.includes(old.location))||groups.find(x=>x.code===old.selectedCode&&normalize(x.name)===normalize(old.selectedName)):null;
