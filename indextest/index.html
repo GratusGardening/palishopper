@@ -8771,6 +8771,17 @@ function basketQty(lines,start,end){
  const choice=(priced.length?priced:valid).at(-1);
  return {qty:choice.qty,uncertain:false};
 }
+function basketAlternateTitles(a,b,lines,i){
+ // Browser copies can contain an image title and a different visible title for the same product.
+ // Only join adjacent, highly similar titles when the second is followed by quantity and price.
+ const words=s=>new Set(normalize(s).split(' ').filter(Boolean));
+ const x=words(a.name),y=words(b.name),common=[...x].filter(w=>y.has(w));
+ if(common.length<3 || common.filter(w=>/[a-z]/.test(w)).length<2 ||
+    common.length/Math.max(x.size,y.size)<0.7) return false;
+ const following=lines.slice(i+2,i+8);
+ return following.some(v=>/^[1-9]\d?$/.test(v.trim())) &&
+        following.some(v=>/^£\s*\d/.test(v.trim()));
+}
 function detectBasket(listText){
  const before=listText.replace(/\r/g,'').split('\n');
  const stop=before.findIndex(s=>/^\s*shopping\s+total\s*$/i.test(s.trim()));
@@ -8781,7 +8792,7 @@ function detectBasket(listText){
   if(p.linked){anchors.push({...p,pos:i});continue;}
   // Plain browser-copied Iceland baskets print their product titles twice in succession.
   const n=basketNameFromLine(lines[i+1]||'');
-  if(n&&!n.linked&&looksLikeBasketProduct(n.name)&&sameBasketTitle(p,n)){
+  if(n&&!n.linked&&looksLikeBasketProduct(n.name)&&(sameBasketTitle(p,n)||basketAlternateTitles(p,n,lines,i))){
    anchors.push({...p,pos:i});anchors.push({...n,pos:i+1});i++;continue;
   }
   // If a title is present once, accept it only with quantity and price evidence
@@ -8796,7 +8807,7 @@ function detectBasket(listText){
  if(!anchors.length)return {products:[],expected:null,uncertain:0,stopped:stop>=0};
  const groups=[];
  for(const a of anchors){const prior=groups.at(-1);
-  if(prior&&a.pos-prior.last<=2&&sameBasketTitle(prior,a)){
+  if(prior&&a.pos-prior.last<=2&&(sameBasketTitle(prior,a)||(a.pos===prior.last+1&&basketAlternateTitles(prior,a,lines,prior.last)))){
    // Prefer the second printed title; the first may have an extra '2l' suffix.
    prior.name=a.name;prior.code=a.code||prior.code;prior.last=a.pos;
   }else{groups.push({name:a.name,code:a.code,first:a.pos,last:a.pos});}
