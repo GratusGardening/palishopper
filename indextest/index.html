@@ -8807,7 +8807,7 @@ function detectBasket(listText){
  if(!anchors.length)return {products:[],expected:null,uncertain:0,stopped:stop>=0};
  const groups=[];
  for(const a of anchors){const prior=groups.at(-1);
-  if(prior&&a.pos-prior.last<=2&&(sameBasketTitle(prior,a)||(a.pos===prior.last+1&&basketAlternateTitles(prior,a,lines,prior.last)))){
+  if(prior&&a.pos-prior.last<=2&&(sameBasketTitle(prior,a)||(!prior.code&&!a.code&&a.pos===prior.last+1&&basketAlternateTitles(prior,a,lines,prior.last)))){
    // Prefer the second printed title; the first may have an extra '2l' suffix.
    prior.name=a.name;prior.code=a.code||prior.code;prior.last=a.pos;
   }else{groups.push({name:a.name,code:a.code,first:a.pos,last:a.pos});}
