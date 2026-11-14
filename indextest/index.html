@@ -8823,7 +8823,7 @@ function detectBasket(listText){
  return {products,expected:basketId?Number(basketId[1]||basketId[2]):null,uncertain,stopped:stop>=0};
 }
 function listLineFromProduct(item){return (item.qty>1?item.qty+' x ':'1 x ')+item.name;}
-function hasBasketNoise(text){return /\bshopping total\b|iceland\.co\.uk\/p\/|\bmix\s*(?:&|&amp;)\s*match\b|\bmultibuy\b|\bbasket subtotal\b/i.test(text);}
+function hasBasketNoise(text){return /\bshopping total\b|iceland\.co\.uk\/p\/|\bmix\s*(?:&|&amp;)\s*match\b|\bmultibuy\b|\bbasket subtotal\b|\byour delivery reservation\b|(?:^|\n)\s*£\s*\d/i.test(text);}
 $('cleanList').onclick=()=>{
  const raw=list.value.trim();if(!raw){notify('Paste your shopping list first.');list.focus();return;}
  const report=$('cleanReport');report.classList.remove('warn');
