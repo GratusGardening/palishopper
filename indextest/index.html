@@ -8728,128 +8728,136 @@ window.visualViewport?.addEventListener('resize', keepSearchVisible);
 
 
 // V2.1 basket cleanup runs only when CLEAN UP LIST is pressed; auto-save is unchanged.
-function basketNameFromLine(raw){
- const s=String(raw||'').trim();
- // Iceland browser Share -> Copy may include Markdown product URLs, or plain text.
- const link=s.match(/^\[([^\]]+)\]\((?:<([^>]+)>|(https?:\/\/[^\s)]+))\)\s*$/i);
- if(link){const url=link[2]||link[3];if(!/iceland\.co\.uk\/p\//i.test(url))return null;
-  const code=(url.match(/\/(\d{3,7})\.html(?:[?#]|$)/)||[])[1]||'';
-  return {name:link[1].trim(),code,linked:true};
+// Basket extraction is independent of the store inventory. Keep uncertain items for review.
+let basketPasteLinks=new Map(),basketPasteText='',basketReview=null,basketOriginal='';
+function basketText(s){return String(s||'').replace(/\r/g,'').replace(/[\uFFFC\u200B-\u200D\uFEFF]/g,'').replace(/\u00a0/g,' ').replace(/&amp;/gi,'&').replace(/&(?:quot|#34);/gi,'"').replace(/&#(?:39|x27);|&apos;/gi,"'").replace(/\\([*&_[\]])/g,'$1');}
+function basketHeading(s){return basketText(s).replace(/^\s*#{1,6}\s*/,'').trim().toLowerCase();}
+function basketCode(url){try{const u=new URL(url,'https://www.iceland.co.uk');return /(^|\.)iceland\.co\.uk$/i.test(u.hostname)&&/^\/p\//i.test(u.pathname)?(u.pathname.match(/\/(\d{3,7})\.html$/)||[])[1]||'':'';}catch{return '';}}
+// Read available product identities during an ordinary paste; never render third-party HTML.
+list.addEventListener('paste',e=>{
+ basketPasteLinks=new Map();basketPasteText='';
+ const html=e.clipboardData?.getData('text/html');if(!html)return;
+ const doc=new DOMParser().parseFromString(html,'text/html');
+ for(const a of doc.querySelectorAll('a[href]')){const code=basketCode(a.getAttribute('href'));if(!code)continue;
+  const name=basketText(a.textContent||a.querySelector('img')?.getAttribute('alt')||'').trim();if(name)basketPasteLinks.set(normalize(name),code);
  }
- if(/^\s*\[/.test(s))return null;
- return {name:s,code:'',linked:false};
+ const inserted=e.clipboardData.getData('text/plain');
+ basketPasteText=list.value.slice(0,list.selectionStart)+inserted+list.value.slice(list.selectionEnd);
+});
+function basketNameFromLine(raw){
+ const s=basketText(raw).trim();
+ const m=s.match(/^\[([\s\S]*?)\]\((?:<([^>]+)>|(https?:\/\/\S+))\)\s*$/i);
+ if(m){const code=basketCode(m[2]||m[3]);if(!code)return null;const name=m[1].replace(/^\*+\s*/,'').trim();return name&&/[a-z]/i.test(name)?{name,code,linked:true}:null;}
+ if(/^\[|https?:\/\//i.test(s))return null;
+ return {name:s,code:basketPasteText===list.value?(basketPasteLinks.get(normalize(s))||''):'',linked:false};
 }
-function looksLikeBasketProduct(s){
- if(!s||s.length<10||s.length>210||!/[a-z]/i.test(s))return false;
- if(/(?:£|https?:|\b(?:free|subtotal|shopping total|delivery|discount|offer|multibuy|mix\s*&\s*match|mix\s*&amp;\s*match|meal deal|basket|fee|reviews?|search groceries|shop now|explore|discount|save|page|about iceland|useful links|help and support|cookies|terms|postcode|book delivery|sitemap|welcome to iceland|checkout|inc\. fees)\b)/i.test(s))return false;
- if(/\b(?:for\s*£|was\s*£)\b/i.test(s))return false;
- if(/^\d+(?:\/\d+)?$/.test(s)||/^\d+\s*(?:for|x)\s*\d+/i.test(s))return false;
- return s.trim().split(/\s+/).length>=3;
+function basketNoiseLine(raw){
+ const s=basketHeading(raw);
+ return !s||/^(?:£|\d+(?:[/.]\d+)?$|[+−–-]$)/.test(s)||/^\d+\s*(?:for|x)\s*£?/i.test(s)||
+ /^(?:mix\s*&\s*match|multibuy|meal deal|half price|sale\s*-|was\b|save\b|spend\b|buy\b|get\b|from\s*£|for$|each$|pack$|new$|sponsored$|online exclusive$|viral$|explore[- ]the[- ]range|extra[- ]free$)/i.test(s)||
+ /^(?:max(?:imum)?\s*(?:qty|quantity|reached)|qty\b|quantity\b|maximum reached|add(?: to (?:basket|trolley))?$|remove$)/i.test(s)||
+ /^(?:your (?:shopping basket|delivery|basket)|shopping (?:basket|total)|basket(?: subtotal)?$|search groceries|search results|\d+ products? found|sort by|viewing \d|home$|offers$|paypal$|inc\. fees|free delivery|checkout|see your products|add a promo code|we'll deliver to|\d+ items? (?:is|are|in your basket)|you can view alternative)/i.test(s)||
+ /^(?:about iceland|useful links|help and support|stay updated|iceland bonus card app|we securely accept|©|sitemap$|terms\s*&\s*conditions$|privacy$|cookies$|cookie preferences$|manage cookies$|app store$|google play$)/i.test(s)||
+ /^(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)$|^\d{1,2}(?:st|nd|rd|th)?\s*(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|^\d{1,2}:\d{2}\s*[ap]m/i.test(s);
 }
-function sameBasketTitle(x,y){
- if(x.code&&y.code)return x.code===y.code;
- const a=normalize(x.name),b=normalize(y.name);
- return a===b || (Math.min(a.length,b.length)>=12 && Math.min(a.length,b.length)/Math.max(a.length,b.length)>.76 && (a.startsWith(b)||b.startsWith(a)));
+function looksLikeBasketProduct(s){return s.length>=2&&s.length<=260&&/[a-z]/i.test(s)&&!basketNoiseLine(s);}
+function sameBasketTitle(a,b){
+ if(a.code&&b.code)return a.code===b.code;
+ const x=normalize(a.name),y=normalize(b.name);if(x===y)return true;
+ const wa=new Set(x.split(' ')),wb=new Set(y.split(' '));const common=[...wa].filter(w=>wb.has(w));
+ return common.length>=3&&common.filter(w=>/[a-z]/.test(w)).length>=2&&common.length/Math.min(wa.size,wb.size)>=0.7;
 }
 function basketQty(lines,start,end){
- // The actual basket quantity is a standalone integer followed by the item price.
- // Ignore promotion numerals ("4 / for / £15"), product pack counts and fraction "1/2".
- const valid=[];
- for(let i=start;i<end;i++){
-  const s=lines[i].trim();if(!/^[1-9]\d?$/.test(s))continue;
-  const next=(lines[i+1]||'').trim().toLowerCase();
-  if(next==='for'||next==='x'||next==='pack'||next==='free')continue;
-  const prev=(lines[i-1]||'').trim().toLowerCase();
-  if(prev==='buy'||prev==='get')continue;
-  const nextFew=lines.slice(i+1,Math.min(end,i+5));
-  // A post-quantity price is evidence; promotional numbers usually precede 'for'.
-  const isPriceAhead=nextFew.some(x=>/^£\s*\d/.test(x.trim()));
-  valid.push({qty:+s,i,priceAhead:isPriceAhead});
+ const found=[];
+ for(let i=start;i<end;i++){const s=lines[i],label=s.match(/^(?:qty|quantity)\s*[:=]?\s*(\d+)$/i);if(label){found.push(+label[1]);continue;}
+  if(!/^[1-9]\d{0,2}$/.test(s))continue;
+  if(/^(?:for|x|pack|free)$/i.test(lines[i+1]||'')||/^(?:buy|get)$/i.test(lines[i-1]||''))continue;
+  found.push(+s);
  }
- if(!valid.length)return {qty:1,uncertain:true};
- const priced=valid.filter(x=>x.priceAhead);
- const choice=(priced.length?priced:valid).at(-1);
- return {qty:choice.qty,uncertain:false};
-}
-function basketAlternateTitles(a,b,lines,i){
- // Browser copies can contain an image title and a different visible title for the same product.
- // Only join adjacent, highly similar titles when the second is followed by quantity and price.
- const words=s=>new Set(normalize(s).split(' ').filter(Boolean));
- const x=words(a.name),y=words(b.name),common=[...x].filter(w=>y.has(w));
- if(common.length<3 || common.filter(w=>/[a-z]/.test(w)).length<2 ||
-    common.length/Math.min(x.size,y.size)<0.7) return false;
- const following=lines.slice(i+2,i+8);
- return following.some(v=>/^[1-9]\d?$/.test(v.trim())) &&
-        following.some(v=>/^£\s*\d/.test(v.trim()));
+ const distinct=[...new Set(found)];return {qty:distinct.length===1?distinct[0]:null,uncertain:distinct.length!==1};
 }
 function detectBasket(listText){
- const before=listText.replace(/\r/g,'').split('\n');
- const stop=before.findIndex(s=>/^\s*shopping\s+total\s*$/i.test(s.trim()));
- const lines=(stop>=0?before.slice(0,stop):before).map(x=>x.trim());
- const anchors=[];
- for(let i=0;i<lines.length;i++){
-  const p=basketNameFromLine(lines[i]);if(!p||!looksLikeBasketProduct(p.name))continue;
-  if(p.linked){anchors.push({...p,pos:i});continue;}
-  // Plain browser-copied Iceland baskets print their product titles twice in succession.
-  const n=basketNameFromLine(lines[i+1]||'');
-  if(n&&!n.linked&&looksLikeBasketProduct(n.name)&&(sameBasketTitle(p,n)||basketAlternateTitles(p,n,lines,i))){
-   anchors.push({...p,pos:i});anchors.push({...n,pos:i+1});i++;continue;
-  }
-  // If a title is present once, accept it only with quantity and price evidence
-  // before the next page heading. This is deliberately conservative.
-  if(/\b(?:\d+\s?(?:g|kg|ml|l|litres?)|\d+\s?(?:pack|pk))\b/i.test(p.name) || (/^[1-9]\d?$/.test((lines[i+1]||'').trim()) && /^£\s*\d/.test((lines[i+2]||'').trim()))){
-   const preview=lines.slice(i+1,i+12);
-   const hasQty=preview.some(x=>/^[1-9]\d?$/.test(x));
-   const hasPrice=preview.some(x=>/^£\s*\d/.test(x));
-   if(hasQty&&hasPrice)anchors.push({...p,pos:i});
-  }
- }
- if(!anchors.length)return {products:[],expected:null,uncertain:0,stopped:stop>=0};
+ const before=basketText(listText).replace(/\[\s*\*+\s*\n\s*/g,'[').split('\n').map(s=>s.trim()).filter(Boolean);
+ const title=s=>basketHeading(s);const heading=s=>/^(?:your )?shopping basket$/.test(title(s));
+ const suggestion=s=>/^(?:you (?:may|might) also like|recommended(?: for you)?|people also (?:bought|buy)|customers also (?:bought|buy)|recently viewed|about iceland|useful links|help and support|terms\s*&\s*conditions|cookie preferences)$/.test(title(s));
+ const catalogue=before.some(s=>/^search results for\b|^\d+ products? found$/.test(title(s)));
+ const explicit=before.some(heading);let end=before.length,stopped=false;
+ // Find product evidence before treating a total as the lower boundary. Some mobile
+ // layouts put a delivery summary and total ABOVE the actual basket.
+ const start=before.findIndex((s,i)=>{const p=basketNameFromLine(s);if(!p||!looksLikeBasketProduct(p.name))return false;if(p.linked)return true;
+  const n=basketNameFromLine(before[i+1]||'');const next=before.slice(i+1,i+10);
+  return (n&&looksLikeBasketProduct(n.name)&&sameBasketTitle(p,n)&&next.some(x=>/^£\s*\d/.test(x)))||
+   /^£\s*\d/.test(before[i+1]||'')||(/^[1-9]\d{0,2}$/.test(before[i+1]||'')&&!/^(?:for|x|pack)$/i.test(before[i+2]||'')&&before.slice(i+2,i+5).some(x=>/^£\s*\d/.test(x)));
+ });
+ if(start<0)return {products:[],expected:null,uncertain:0,stopped:false,mode:'basket'};
+ const seenProduct=true;
+ for(let i=start+1;i<before.length;i++){if(suggestion(before[i])||/^shopping\s+total\s*$/i.test(title(before[i]))){end=i;stopped=true;break;}}
+ const lines=before.slice(start,end),anchors=[];
+ for(let i=0;i<lines.length;i++){const p=basketNameFromLine(lines[i]);if(p&&looksLikeBasketProduct(p.name))anchors.push({...p,pos:i});}
  const groups=[];
  for(const a of anchors){const prior=groups.at(-1);
-  if(prior&&a.pos-prior.last<=2&&(sameBasketTitle(prior,a)||(!prior.code&&!a.code&&a.pos===prior.last+1&&basketAlternateTitles(prior,a,lines,prior.last)))){
-   // Prefer the second printed title; the first may have an extra '2l' suffix.
-   prior.name=a.name;prior.code=a.code||prior.code;prior.last=a.pos;
-  }else{groups.push({name:a.name,code:a.code,first:a.pos,last:a.pos});}
+  const between=prior?lines.slice(prior.last+1,a.pos):[];
+  const separated=between.some(x=>/^£\s*\d/.test(x)||/^[1-9]\d{0,2}$/.test(x));
+  if(prior&&!separated&&sameBasketTitle(prior,a)){prior.name=a.name;prior.code=a.code||prior.code;prior.last=a.pos;}
+  else groups.push({...a,first:a.pos,last:a.pos});
  }
- const products=[];let uncertain=0;
- for(let i=0;i<groups.length;i++){
-  const g=groups[i],end=i+1<groups.length?groups[i+1].first:lines.length;
-  const count=basketQty(lines,g.last+1,end);
-  if(count.uncertain)uncertain++;
-  products.push({name:g.name,qty:count.qty,code:g.code});
+ const products=[];
+ for(let i=0;i<groups.length;i++){const g=groups[i],finish=groups[i+1]?.first??lines.length,block=lines.slice(g.last+1,finish);
+  const count=basketQty(lines,g.last+1,finish),hasPrice=block.some(x=>/^£\s*\d/.test(x));
+  // A title before another title can be an unrecognised image caption. Keep it for review.
+  if(!g.linked&&!hasPrice&&count.qty===null&&!(explicit||seenProduct))continue;
+  products.push({name:g.name,code:g.code,qty:count.qty,uncertain:count.uncertain});
  }
- const basketId=before.slice(0,6).join('\n').match(/\[(\d+)\]\(https?:\/\/www\.iceland\.co\.uk\/basket\)|^\s*(\d{1,3})\s*$/m);
- return {products,expected:basketId?Number(basketId[1]||basketId[2]):null,uncertain,stopped:stop>=0};
+ // Only read a basket count from its link or from the header before the first product.
+ const firstName=products[0]?.name;let first=before.findIndex(x=>{const p=basketNameFromLine(x);return p&&p.name===firstName;});if(first<0)first=0;
+ const head=before.slice(0,first),linkedCount=head.join('\n').match(/\[(\d+)\]\(https?:\/\/(?:www\.)?iceland\.co\.uk\/basket\/?\)/i);
+ let expected=linkedCount?+linkedCount[1]:null;
+ if(expected===null&&head.some(x=>/your delivery|search groceries|shopping basket/i.test(x))){const value=head.find(x=>/^\d{1,3}$/.test(x));if(value)expected=+value;}
+ const basketHeader=expected!==null||head.some(s=>/your delivery|items? (?:is|are) no longer available/i.test(s));
+ return {products,expected,uncertain:products.filter(p=>p.uncertain).length,stopped,mode:catalogue&&!explicit&&!basketHeader?'catalogue':'basket'};
 }
-function listLineFromProduct(item){return (item.qty>1?item.qty+' x ':'1 x ')+item.name;}
-function hasBasketNoise(text){return /\bshopping total\b|iceland\.co\.uk\/p\/|\bmix\s*(?:&|&amp;)\s*match\b|\bmultibuy\b|\bbasket subtotal\b|\byour delivery reservation\b|(?:^|\n)\s*£\s*\d/i.test(text);}
+function listLineFromProduct(p){return (p.qty===null?'':p.qty+' x ')+p.name;}
+function hasBasketNoise(text){
+ if(basketReview&&text===basketReview.draft)return true;
+ return /\bshopping total\b|iceland\.co\.uk\/p\/|\bmix\s*(?:&|&amp;)\s*match\b|\bmultibuy\b|\byour (?:delivery|shopping basket)\b|\bsearch results for\b|(?:^|\n)\s*£\s*\d|\bcookie preferences\b|\bterms\s*&\s*conditions\b/i.test(text);
+}
+function writeCleanBasket(products){list.value=products.map(listLineFromProduct).join('\n');items=[];basketReview=null;save();draw();list.dispatchEvent(new Event('input',{bubbles:true}));}
+function showBasketReview(result,original,reason){
+ const report=$('cleanReport');report.hidden=false;report.classList.add('warn');report.replaceChildren();
+ const message=document.createElement('p');message.textContent=reason+' Check the products and quantities below, then use your reviewed list.';report.append(message);
+ const form=document.createElement('div');form.style.cssText='display:grid;gap:10px;margin:12px 0';const rows=[];
+ for(const p of result.products){const row=document.createElement('label');row.style.cssText='display:grid;grid-template-columns:24px minmax(0,1fr) 72px;align-items:center;gap:8px';
+  const keep=document.createElement('input');keep.type='checkbox';keep.checked=result.mode!=='catalogue';keep.setAttribute('aria-label','Keep '+p.name);
+  const name=document.createElement('span');name.textContent=p.name;
+  const qty=document.createElement('input');qty.type='number';qty.min='1';qty.max='999';qty.step='1';qty.value=p.qty===null?(result.mode==='catalogue'?'1':''):String(p.qty);qty.placeholder='Qty?';qty.style.cssText='width:100%;box-sizing:border-box;padding:8px';qty.setAttribute('aria-label','Quantity for '+p.name);
+  row.append(keep,name,qty);form.append(row);rows.push({p,keep,qty});
+ }
+ const apply=document.createElement('button');apply.type='button';apply.textContent='USE REVIEWED LIST';apply.onclick=()=>{const selected=rows.filter(r=>r.keep.checked);if(!selected.length){message.textContent='Select at least one product to keep.';return;}
+  for(const r of selected){const n=Number(r.qty.value);if(!Number.isInteger(n)||n<1||n>999){message.textContent='Enter a quantity for '+r.p.name+'.';r.qty.focus();return;}}
+  writeCleanBasket(selected.map(r=>({...r.p,qty:Number(r.qty.value)})));report.replaceChildren();report.textContent='✓ Reviewed list saved: '+selected.length+' products. Create your walkthrough when ready.';report.classList.remove('warn');
+ };
+ const restore=document.createElement('button');restore.type='button';restore.textContent='RESTORE ORIGINAL PASTE';restore.onclick=()=>{list.value=original;basketReview=null;save();report.replaceChildren();report.textContent='Original paste restored.';};
+ report.append(form,apply,document.createTextNode(' '),restore);
+}
 $('cleanList').onclick=()=>{
  const raw=list.value.trim();if(!raw){notify('Paste your shopping list first.');list.focus();return;}
+ if(basketReview&&raw===basketReview.draft.trim()){showBasketReview(basketReview.result,basketReview.original,basketReview.reason);return;}
  const report=$('cleanReport');report.classList.remove('warn');
- if(!hasBasketNoise(raw)){
-  report.hidden=false;report.textContent='Your list already looks clean. You can add more using the product dropdown.';
-  save();return;
+ if(!hasBasketNoise(raw)){report.hidden=false;report.textContent='Your list already looks clean. You can edit it or create your walkthrough.';save();return;}
+ const result=detectBasket(raw);if(!result.products.length){
+  // Remove a confirmed trailing page section even when no product could be read.
+  const lines=raw.split('\n'),cut=lines.findIndex(s=>/^(?:you (?:may|might) also like|about iceland|useful links|terms\s*&\s*conditions|cookie preferences)$/.test(basketHeading(s)));
+  if(cut>=0){list.value=lines.slice(0,cut).join('\n').trim();save();}
+  report.hidden=false;report.classList.add('warn');report.textContent='Website footer removed where identifiable. No products could be read confidently; check the remaining text.';return;
  }
- const out=detectBasket(raw);
- if(!out.products.length){report.hidden=false;report.classList.add('warn');report.textContent='Could not confidently identify basket products. Your original text was left unchanged; please check what was pasted.';return;}
- const total=out.products.reduce((n,p)=>n+p.qty,0);
- if(out.expected!==null&&out.expected!==total){
-  report.hidden=false;report.classList.add('warn');
-  report.textContent='Review required: found '+out.products.length+' products / '+total+' items, but Iceland shows '+out.expected+' in the basket. Nothing changed. Check the pasted basket and try again.';
-  return;
- }
- if(out.uncertain){
-  report.hidden=false;report.classList.add('warn');
-  report.textContent='Review required: '+out.uncertain+' quantity'+(out.uncertain===1?'':'ies')+' could not be read confidently. Your original text is unchanged.';
-  return;
- }
- list.value=out.products.map(listLineFromProduct).join('\n');
- // Current progress is recomputed on CREATE SHOP WALKTHROUGH; do not show stale cards.
- items=[];save();draw();
- report.hidden=false;report.textContent='✓ Cleaned: '+out.products.length+' products · '+total+' items. Prices, duplicate titles and promotions removed. Add more products anytime below.';
- notify('Cleaned list saved on this device. Use the dropdown to add more products.');
+ const total=result.products.reduce((n,p)=>n+(p.qty||0),0),mismatch=result.expected!==null&&result.expected!==total;
+ const reason=result.mode==='catalogue'?'This is a product search or catalogue. Select the products you want.':result.uncertain?'Some quantities or product boundaries could not be read.':mismatch?'Iceland shows '+result.expected+' items; the copied list currently totals '+total+'.':'Check your cleaned products.';
+ basketOriginal=raw;writeCleanBasket(result.products);
+ if(result.mode==='catalogue'||result.uncertain||mismatch){basketReview={result,original:raw,reason,draft:list.value};showBasketReview(result,raw,reason);notify('Website clutter removed. Review the products below.');return;}
+ report.hidden=false;report.replaceChildren();const message=document.createElement('span');message.textContent='✓ Cleaned: '+result.products.length+' products · '+total+' items. Website text, prices and duplicate titles removed. ';
+ const review=document.createElement('button');review.type='button';review.textContent='REVIEW ITEMS';review.onclick=()=>showBasketReview(result,raw,'Check your cleaned products.');report.append(message,review);notify('Cleaned list saved. Review your products or create the walkthrough.');
 };
+
 $('clearInput').onclick=()=>{if(!list.value.trim())return;if(confirm('Clear the input text? Saved lists and location corrections will remain.')){list.value='';save();notify('Input text cleared. Existing walkthrough and saved lists remain.')}};
 function appendLine(s){list.value=(list.value.trim()?list.value.trim()+'\n':'')+s.trim();save()}
 // Select quantity on focus and tap so typing replaces the default 1.
@@ -8898,7 +8906,7 @@ function chooseMatch(p,old){
  }
  return result;
 }
-function create(){if(spokenActive)spokenStopGuide('Walkthrough rebuilt. Press Start to hear your list.');if(hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
+function create(){if(basketReview&&list.value===basketReview.draft){notify('Review the products and quantities below, then press USE REVIEWED LIST.');$('cleanReport').scrollIntoView({behavior:'smooth',block:'center'});return;}if(spokenActive)spokenStopGuide('Walkthrough rebuilt. Press Start to hear your list.');if(hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
 $('createBtn').onclick=create;
 function el(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=String(text);return x}
 function chooseProduct(id,code,name,recordId){const x=items.find(o=>o.id===id);if(!x)return;const selected=x.options.find(p=>p.code===code&&p.name===name&&(!recordId||p.recordId===recordId));if(!selected)return;const g=groups.find(g=>g.id===(recordId||selected.recordId))||groups.find(g=>g.code===code&&g.name===name&&g.locations.includes(selected.location));if(!g)return;x.name=g.name;x.selectedName=g.name;x.selectedCode=g.code;x.options=[];x.possible=g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]);x.location=x.possible[0]||'';items.sort(compare);save();draw();spokenReannounceIfCurrent(id)}
