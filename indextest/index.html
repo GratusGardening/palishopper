@@ -8859,7 +8859,7 @@ $('cleanList').onclick=()=>{
  report.hidden=false;report.replaceChildren();const message=document.createElement('span');message.textContent='✓ Cleaned: '+result.products.length+' products · '+total+' items. Website text, prices and duplicate titles removed. ';
  const review=document.createElement('button');review.type='button';review.textContent='REVIEW ITEMS';review.onclick=()=>showBasketReview(result,raw,'Check your cleaned products.');report.append(message,review);notify('Cleaned list saved. Review your products or create the walkthrough.');
 };
-try{const pending=JSON.parse(sessionStorage.getItem('paliBasketReviewV3')||'null');if(pending&&pending.draft===list.value){basketReview=pending;showBasketReview(pending.result,pending.original,pending.reason);}}catch{}
+queueMicrotask(()=>{try{const pending=JSON.parse(sessionStorage.getItem('paliBasketReviewV3')||'null');if(pending&&pending.draft===list.value){basketReview=pending;showBasketReview(pending.result,pending.original,pending.reason);}}catch{}});
 
 $('clearInput').onclick=()=>{if(!list.value.trim())return;if(confirm('Clear the input text? Saved lists and location corrections will remain.')){list.value='';save();notify('Input text cleared. Existing walkthrough and saved lists remain.')}};
 function appendLine(s){list.value=(list.value.trim()?list.value.trim()+'\n':'')+s.trim();save()}
