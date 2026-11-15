@@ -9302,8 +9302,146 @@ function draw(){
  drawSummary();
 }
 function drawSummary(){const box=$('summary');box.hidden=!items.length;box.replaceChildren();box.append(el('h2','','🛒 MY SHOPPING SUMMARY'));const counts=el('div','totals');for(const [label,value] of [['IN TROLLEY','done'],['STILL TO SHOP','todo'],['SKIPPED','skip']]){const c=el('div','total'),n=items.filter(x=>x.status===value).reduce((a,x)=>a+x.qty,0);c.append(el('b','',n),el('span','',label));counts.append(c)}box.append(counts);for(const [label,value] of [['✓ WHAT I SHOPPED','done'],['📝 STILL TO SHOP','todo'],['↪ SKIPPED ITEMS','skip']]){box.append(el('h3','',label));const ul=el('ul');const which=items.filter(x=>x.status===value);if(!which.length)ul.append(el('li','','None'));for(const item of which)ul.append(el('li','',item.qty+' × '+item.name+(item.location?' — '+item.location:' — LOCATION TO CHECK')));box.append(ul)}}
-$('photoCamera').onclick=()=>$('camera').click();$('photoChoose').onclick=()=>$('photos').click();async function readPhotos(files){if(!files?.length)return;const msg=$('ocrMessage');if(!window.Tesseract){msg.textContent='OCR needs an internet connection to load.';return}msg.textContent='Reading image(s) …';try{let text=[];for(const f of files){const r=await window.Tesseract.recognize(f,'eng');text.push(r.data.text||'')}$('ocrText').value=text.join('\n');$('ocrReview').hidden=false;msg.textContent='Remove page headings and prices; keep only product names.'}catch(err){msg.textContent='Could not read photo: '+err.message}}
-$('camera').onchange=e=>{readPhotos(e.target.files);e.target.value=''};$('photos').onchange=e=>{readPhotos(e.target.files);e.target.value=''};$('ocrAdd').onclick=()=>{const t=$('ocrText').value.trim();if(t){appendLine(t);$('ocrReview').hidden=true;notify('OCR text added. Check it before creating walkthrough.')}};
+// PAUSED DRAFT — not deployed. Native screenshot tests recovered two names, but the final Tesseract.js cross-check split the sausage title and selected three products. Fix pass selection/column grouping before merging. The browser photo picker also stalled during the upload retest.
+// Image preparation restores the stronger Pally Picker reader without an inventory allowlist.
+function photoLoadImage(file){
+ return new Promise((resolve,reject)=>{
+  const url=URL.createObjectURL(file),image=new Image();
+  image.onload=()=>{URL.revokeObjectURL(url);resolve(image);};
+  image.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Could not open this image.'));};
+  image.src=url;
+ });
+}
+function photoOtsu(hist,total){
+ let sum=0,sumB=0,weight=0,best=0,threshold=128;
+ for(let i=0;i<256;i++)sum+=i*hist[i];
+ for(let i=0;i<256;i++){
+  weight+=hist[i];if(!weight)continue;const other=total-weight;if(!other)break;
+  sumB+=i*hist[i];const delta=sumB/weight-(sum-sumB)/other;
+  const variance=weight*other*delta*delta;
+  if(variance>best){best=variance;threshold=i;}
+ }
+ return threshold;
+}
+function photoPrepareImage(image,thresholded=false){
+ const width=image.naturalWidth,height=image.naturalHeight;
+ const scale=Math.min(Math.min(1600,Math.max(1200,width*1.55))/width,3200/height);
+ const canvas=document.createElement('canvas');
+ canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.max(1,Math.round(height*scale));
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(image,0,0,canvas.width,canvas.height);
+ const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),d=pixels.data,hist=new Array(256).fill(0);let sum=0;
+ for(let i=0;i<d.length;i+=4){
+  const g=Math.max(0,Math.min(255,Math.round((0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]-128)*1.45+128)));
+  d[i]=d[i+1]=d[i+2]=g;hist[g]++;sum+=g;
+ }
+ const average=sum/(d.length/4),threshold=photoOtsu(hist,d.length/4);
+ for(let i=0;i<d.length;i+=4){let value=thresholded?(d[i]<threshold?0:255):d[i];if(average<105)value=255-value;d[i]=d[i+1]=d[i+2]=value;}
+ ctx.putImageData(pixels,0,0);return canvas;
+}
+function photoReadLines(data){
+ const groups=new Map();
+ for(const row of String(data.tsv||'').split(/\r?\n/).slice(1)){
+  const cells=row.split('\t');if(cells[0]!=='5'||cells.length<12)continue;
+  const text=cells.slice(11).join(' ').trim();if(!text)continue;
+  const x=Number(cells[6]),y=Number(cells[7]),w=Number(cells[8]),h=Number(cells[9]),confidence=Number(cells[10]);
+  if(![x,y,w,h,confidence].every(Number.isFinite))continue;
+  const key=cells.slice(1,5).join(':');
+  if(!groups.has(key))groups.set(key,{words:[],x0:x,y0:y,x1:x+w,y1:y+h,score:0,weight:0});
+  const line=groups.get(key),weight=Math.max(1,text.length);
+  line.words.push({text,x});line.x0=Math.min(line.x0,x);line.y0=Math.min(line.y0,y);line.x1=Math.max(line.x1,x+w);line.y1=Math.max(line.y1,y+h);
+  line.score+=Math.max(0,confidence)*weight;line.weight+=weight;
+ }
+ return [...groups.values()].map(line=>({...line,text:line.words.sort((a,b)=>a.x-b.x).map(w=>w.text).join(' '),confidence:line.score/line.weight})).sort((a,b)=>a.y0-b.y0||a.x0-b.x0);
+}
+function photoCleanLine(raw){
+ return String(raw||'').replace(/[\uFFFC\u200B-\u200D\uFEFF]/g,'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/^[|>•\s]+/,'').replace(/\s+/g,' ').trim();
+}
+function photoNoiseLine(raw){
+ const s=photoCleanLine(raw),letters=(s.match(/[a-z]/gi)||[]).length;
+ if(photoPackSize(s))return false;
+ return !s||/[£€]\s*\d/.test(s)||/^\d{1,2}[:.]\d{2}\b/.test(s)||
+  /^(?:sponsored\b|new recipe\b|mix\s*&\s*match\b|half price\b|was\b|save\s*£|\d+\s*for\b|add(?: to (?:basket|trolley))?$|remove$|qty\b|quantity\b)/i.test(s)||
+  /^(?:iceland|the food|the food warehouse|warehouse|menu|search groceries\.*|estimated\)?|your (?:basket|delivery)|shopping basket|checkout|sort by.*|filter.*|new|online exclusive)$/i.test(s)||
+  /^\(?estimated\)?$/i.test(s)||letters<3||letters/Math.max(1,s.length)<0.35||/^[kK*★☆]{3,}[iIlL\W\d]*$/.test(s);
+}
+function photoPackSize(s){return /^\d+(?:[.,]\d+)?\s*(?:kg|g|ml|cl|l|litres?|liters?|pack|packs|pk)\.?$/i.test(s);}
+function photoExtractProducts(data,width,height){
+ const source=photoReadLines(data);
+ const tolerance=Math.max(12,width*0.035),columns=[];
+ for(const line of source.filter(l=>/[£€]\s*\d/.test(l.text)&&l.confidence>=40)){
+  const column=columns.find(c=>Math.abs(c.x-line.x0)<=tolerance);
+  if(column){column.lines.push(line);column.x=column.lines.reduce((n,l)=>n+l.x0,0)/column.lines.length;}
+  else columns.push({x:line.x0,lines:[line]});
+ }
+ const good=source.map(l=>({...l,text:photoCleanLine(l.text)})).filter(l=>(l.confidence>=50||photoPackSize(l.text))&&!photoNoiseLine(l.text));
+ const products=[];
+ for(const column of columns.filter(c=>c.lines.length>=2&&c.x<width*0.82)){
+  const aligned=good.filter(l=>Math.abs(l.x0-column.x)<=tolerance&&l.y0>height*0.07);
+  const groups=[];
+  for(const line of aligned){
+   const previous=groups.at(-1),last=previous?.at(-1);
+   const gap=last?line.y0-last.y1:Infinity;
+   const continuous=last&&gap>=-Math.min(line.y1-line.y0,last.y1-last.y0)*0.3&&gap<=Math.max(line.y1-line.y0,last.y1-last.y0)*1.6;
+   if(continuous)previous.push(line);else if(!photoPackSize(line.text))groups.push([line]);
+  }
+  for(const group of groups){
+   const name=group.map(l=>l.text).join(' ').replace(/\s+/g,' ').trim();
+   const words=name.match(/[a-z]{2,}/gi)||[];
+   if(words.length<2&&(words.length!==1||words[0].length<5))continue;
+   products.push({name,confidence:group.reduce((n,l)=>n+l.confidence,0)/group.length,uncertain:group.some(l=>l.confidence<50),y:group[0].y0,x:group[0].x0});
+  }
+ }
+ if(products.length){
+  products.sort((a,b)=>a.y-b.y||a.x-b.x);
+  const detail=products.reduce((n,p)=>n+Math.min(p.name.length,140)/20+(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|ml|cl|litres?|l)\b/i.test(p.name)?15:0),0);
+  return {products,structured:true,score:300+products.length*50+products.reduce((n,p)=>n+p.confidence,0)/products.length+detail};
+ }
+ // Ordinary lists and handset text remain editable even when no catalogue layout is found.
+ const plain=source.length?good.map(l=>({name:l.text,confidence:l.confidence})):String(data.text||'').split(/\r?\n/).map(photoCleanLine).filter(s=>!photoNoiseLine(s)).map(name=>({name,confidence:45}));
+ return {products:plain,structured:false,score:plain.length?plain.length*20+plain.reduce((n,p)=>n+p.confidence,0)/plain.length:-1};
+}
+let photoReading=false;
+async function readPhotos(files){
+ const selected=Array.from(files||[]).filter(f=>/^image\//.test(f.type));if(!selected.length||photoReading)return;
+ const msg=$('ocrMessage');if(!window.Tesseract){msg.textContent='The image reader needs an internet connection to load.';return;}
+ photoReading=true;$('ocrReview').hidden=true;for(const id of ['photoCamera','photoChoose','ocrAdd'])$(id).disabled=true;
+ let worker;const results=[];
+ try{
+  msg.textContent='Preparing the image reader…';
+  worker=await window.Tesseract.createWorker('eng',1);
+  await worker.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300'});
+  for(let i=0;i<selected.length;i++){
+   msg.textContent='Reading image '+(i+1)+' of '+selected.length+'…';
+   const image=await photoLoadImage(selected[i]),canvas=photoPrepareImage(image);
+   await worker.setParameters({tessedit_pageseg_mode:window.Tesseract.PSM.SPARSE_TEXT});
+   let read=await worker.recognize(canvas,{}, {text:true,tsv:true,blocks:false,hocr:false});
+   let best=photoExtractProducts(read.data,canvas.width,canvas.height);
+   {
+    msg.textContent='Checking image '+(i+1)+' for missed product text…';
+    await worker.setParameters({tessedit_pageseg_mode:window.Tesseract.PSM.AUTO});
+    const alternate=await worker.recognize(canvas,{}, {text:true,tsv:true,blocks:false,hocr:false});
+    const checked=photoExtractProducts(alternate.data,canvas.width,canvas.height);if(checked.score>best.score)best=checked;
+   }
+   if(!best.products.length||best.products.some(p=>p.uncertain)){
+    const rescue=photoPrepareImage(image,true);await worker.setParameters({tessedit_pageseg_mode:window.Tesseract.PSM.SPARSE_TEXT});
+    read=await worker.recognize(rescue,{}, {text:true,tsv:true,blocks:false,hocr:false});
+    const checked=photoExtractProducts(read.data,rescue.width,rescue.height);if(checked.score>best.score)best=checked;
+   }
+   if(!best.products.length)throw new Error('No readable product names in image '+(i+1)+'. Try a closer picture.');
+   results.push(best);
+  }
+  const names=results.flatMap(r=>r.products.map(p=>p.name));
+  $('ocrText').value=names.join('\n');$('ocrReview').hidden=false;
+  const cut=names.some(n=>/\.{2,}|…|\b\d+\s*[x×]\s*$/i.test(n));
+  msg.textContent=(results.every(r=>r.structured)?'Read '+names.length+' product'+(names.length===1?'':'s')+'. Prices, adverts and packaging text removed. ':'Image text read. Check the product names below. ')+(cut?'A name is cut off in the picture; check it before adding.':'Check the names before adding them to your list.');
+ }catch(err){msg.textContent='Could not finish reading: '+err.message;}
+ finally{if(worker)try{await worker.terminate();}catch{}photoReading=false;for(const id of ['photoCamera','photoChoose','ocrAdd'])$(id).disabled=false;}
+}
+$('photoCamera').onclick=()=>$('camera').click();$('photoChoose').onclick=()=>$('photos').click();
+$('camera').onchange=e=>{readPhotos(e.target.files);e.target.value='';};$('photos').onchange=e=>{readPhotos(e.target.files);e.target.value='';};
+$('ocrAdd').onclick=()=>{const text=$('ocrText').value.trim();if(text){appendLine(text);$('ocrReview').hidden=true;notify('Image text added. Check any cut-off names before creating your walkthrough.');}};
 
 // Saved lists are independent snapshots. Clearing current shopping never destroys these.
 let namedLists=[];
