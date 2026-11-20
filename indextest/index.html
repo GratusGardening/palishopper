@@ -190,7 +190,7 @@
 <div style="display:grid;grid-template-columns:20px 1fr;column-gap:7px;row-gap:9px;font-size:13px;line-height:1.4">
 <span style="color:#087c27">✓</span><span>Type or voice your shopping list</span>
 <span style="color:#087c27">✓</span><span>Search products with dropdown suggestions</span>
-<span style="color:#087c27">✓</span><span>Copy your Iceland basket, paste it into the shopping list box, then tap <strong style="color:#40225f">CLEAN UP LIST</strong> to automatically remove unwanted text.</span>
+<span style="color:#087c27">✓</span><span>Paste an Iceland basket or offer into the shopping list box, then tap <strong style="color:#40225f">CLEAN UP LIST</strong> to automatically remove unwanted text.</span>
 </div></div>
 <button type="button" id="showShoppingInstructions" class="instructions-reopen" aria-controls="shoppingInstructions" aria-expanded="false" hidden>SHOW INSTRUCTIONS</button>
 <script>
@@ -8882,9 +8882,76 @@ function showBasketReview(result,original,reason){
  for(const button of [apply,restore])button.style.cssText='min-height:44px;padding:10px 12px;margin:4px 2px;border:2px solid #14834d;border-radius:9px;background:#edfff0;color:#124e30;font-weight:700;cursor:pointer';
  report.append(form,apply,document.createTextNode(' '),restore);
 }
+// Iceland's mobile site can copy both the page behind an offer and its open promotion panel.
+function extractIcelandListing(raw){
+ if(!/£\s*\d/.test(raw))return null;
+ const lines=raw.replace(/\r\n?/g,'\n').replace(/\u00a0/g,' ').replace(/&amp;/gi,'&')
+  .split('\n').map(line=>line.trim()).filter(Boolean);
+ const panel=lines.findIndex(line=>/^product promotions?$/i.test(line));
+ const offerHeading=/^(?:mix\s*&\s*match\b.*\d+\s+for\s+£|buy\s+\d+\s+get\s+\d+\s+free\b)/i;
+ const hasPanel=panel>=0&&lines.slice(panel+1,panel+4).some(line=>offerHeading.test(line)||/^offer valid for delivery\b/i.test(line));
+ const catalogue=lines.findIndex(line=>/^\d+ products? found$|^search results for\b/i.test(line));
+ // A basket may have suggested offers or catalogue cards below its totals. Keep its quantities.
+ const basketContext=lines.some(line=>/^(?:(?:your )?shopping basket|(?:your )?basket|shopping total|basket subtotal|your delivery)\b|\]\(https?:\/\/(?:www\.)?iceland\.co\.uk\/basket\b/i.test(line));
+ if(!hasPanel&&basketContext)return null;
+ const start=hasPanel?panel+1:catalogue>=0?catalogue+1:0;
+ const end=lines.findIndex((line,i)=>i>=start&&/^(?:viewing\s+\d|about iceland$|useful links$|help and support$|cookie preferences$|©|you (?:may|might) also like$|recently viewed$)/i.test(line));
+ const cards=lines.slice(start,end<0?undefined:end);
+ const offerNumber=(line,next)=>/^\d+$/.test(line)&&/^for(?:\s+£|$)/i.test(next||'');
+ // Without a heading, a standalone quantity identifies a basket, even if it also has multibuys.
+ if(!hasPanel&&catalogue<0&&cards.some((line,i)=>/^(?:qty|quantity)\b/i.test(line)||(/^\d+$/.test(line)&&!offerNumber(line,cards[i+1]))))return null;
+ const names=[],seen=new Set();
+ const offer=/^(?:\d+\s+for(?:\s+£|$)|buy\s+\d+\s+get\s+\d+\s+free\b|mix\s*&\s*match\b)/i;
+ const price=/^£\s*\d+(?:[.,]\d{1,2})?$/;
+ const label=/^(?:[£©]|\d+$|was\b|sale\s*[-–]|mix\s*&\s*match\b|buy\s+\d+\b|\d+\s+for\b|offer valid\b|for$|each$|cheapest free$|online exclusive$|big packs badge$|half price$|sign in$|product promotions?$|search groceries|home$|black friday(?: food deals)?$|\d+ products? found$)/i;
+ for(let i=0;i<cards.length-1;i++){
+  const next=cards[i+1];
+  if(!price.test(next)&&!offer.test(next)&&!offerNumber(next,cards[i+2]))continue;
+  // The visible title is immediately above the first price or offer. An image caption can differ.
+  const product=basketNameFromLine(cards[i]);
+  if(!product||label.test(product.name)||!/[a-z]/i.test(product.name))continue;
+  const key=product.name.toLowerCase().replace(/\s+/g,' ');
+  if(!seen.has(key)){seen.add(key);names.push(product.name);}
+ }
+ if(!hasPanel&&catalogue<0&&!names.length)return null;
+ const heading=hasPanel?cards.find(line=>offerHeading.test(line)):'';
+ const deal=heading?.match(/\d+\s+for\s+£\s*\d+(?:\.\d\d)?/i)?.[0].replace(/\.00$/,'');
+ return {names,source:hasPanel?(deal?deal+' offer':'selected offer'):'product listing'};
+}
+function cleanIcelandListing(raw){
+ const listing=extractIcelandListing(raw);
+ if(!listing)return null;
+ const report=$('cleanReport');
+ report.hidden=false;
+ report.classList.toggle('warn',!listing.names.length);
+ if(!listing.names.length){
+  report.textContent='No product names found. Copy the offer with its product names and prices, then paste it here.';
+  return false;
+ }
+ basketReview=null;rememberBasketReview();
+ const originalItems=items;
+ const draft=listing.names.join('\n');
+ list.value=draft;
+ items=[];
+ save();draw();
+ list.dispatchEvent(new Event('input',{bubbles:true}));
+ list.scrollTop=0;
+ const count=listing.names.length;
+ report.textContent=count+' product'+(count===1?'':'s')+' from the '+listing.source+'. One of each. Edit the list or create your walkthrough. ';
+ const undo=document.createElement('button');
+ undo.type='button';undo.textContent='Undo clean-up';
+ undo.onclick=()=>{
+  if(list.value!==draft||items.length){notify('The list has changed since clean-up.');return;}
+  list.value=raw;items=originalItems;save();draw();list.dispatchEvent(new Event('input',{bubbles:true}));
+  report.textContent='Original paste restored.';
+ };
+ report.append(undo);
+ return true;
+}
 $('cleanList').onclick=()=>{
  const raw=list.value.trim();if(!raw){notify('Paste your shopping list first.');list.focus();return;}
- if(basketReview&&raw===basketReview.draft.trim()){showBasketReview(basketReview.result,basketReview.original,basketReview.reason);return;}
+ if(basketReview&&raw===basketReview.draft.trim()){if(cleanIcelandListing(basketReview.original)!==null)return;showBasketReview(basketReview.result,basketReview.original,basketReview.reason);return;}
+ if(cleanIcelandListing(raw)!==null)return;
  const report=$('cleanReport');report.classList.remove('warn');
  if(!hasBasketNoise(raw)){report.hidden=false;report.textContent='Your list already looks clean. You can edit it or create your walkthrough.';save();return;}
  const result=detectBasket(raw);if(!result.products.length){
@@ -8950,7 +9017,7 @@ function chooseMatch(p,old){
  }
  return result;
 }
-function create(){if(basketReview&&list.value===basketReview.draft){notify('Review the products and quantities below, then press USE REVIEWED LIST.');$('cleanReport').scrollIntoView({behavior:'smooth',block:'center'});return;}if(spokenActive)spokenStopGuide('Walkthrough rebuilt. Press Start to hear your list.');if(hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
+function create(){if(basketReview&&list.value===basketReview.draft&&cleanIcelandListing(basketReview.original)!==true){notify('Review the products and quantities below, then press USE REVIEWED LIST.');$('cleanReport').scrollIntoView({behavior:'smooth',block:'center'});return;}if(spokenActive)spokenStopGuide('Walkthrough rebuilt. Press Start to hear your list.');const listingCleaned=cleanIcelandListing(list.value);if(listingCleaned===false)return;if(listingCleaned===null&&hasBasketNoise(list.value)){notify('Press CLEAN UP LIST before creating your walkthrough.');return;}const lines=list.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length){notify('Add products before creating a walkthrough.');list.focus();return}const old=new Map(items.map(o=>[o.id,o]));items=lines.map((x,i)=>{const p=parseLine(x,i);return chooseMatch(p,old.get(p.id))});items.sort(compare);save();draw();notify('Walkthrough created: A1 → A4 → A2 → A3 → A5 → A6.');$('progress').scrollIntoView({block:'center',behavior:'smooth'})}
 $('createBtn').onclick=create;
 function el(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=String(text);return x}
 function chooseProduct(id,code,name,recordId){const x=items.find(o=>o.id===id);if(!x)return;const selected=x.options.find(p=>p.code===code&&p.name===name&&(!recordId||p.recordId===recordId));if(!selected)return;const g=groups.find(g=>g.id===(recordId||selected.recordId))||groups.find(g=>g.code===code&&g.name===name&&g.locations.includes(selected.location));if(!g)return;x.name=g.name;x.selectedName=g.name;x.selectedCode=g.code;x.options=[];x.possible=g.locations.slice().sort((a,b)=>pos(a)[0]-pos(b)[0]);x.location=x.possible[0]||'';items.sort(compare);save();draw();spokenReannounceIfCurrent(id)}
