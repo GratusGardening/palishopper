@@ -8826,7 +8826,8 @@ function detectBasket(listText){
  const explicit=before.some(heading);let end=before.length,stopped=false;
  // Find product evidence before treating a total as the lower boundary. Some mobile
  // layouts put a delivery summary and total ABOVE the actual basket.
- const start=before.findIndex((s,i)=>{const p=basketNameFromLine(s);if(!p||!looksLikeBasketProduct(p.name))return false;if(p.linked)return true;
+ const basketStart=before.findLastIndex(heading);
+ const start=before.findIndex((s,i)=>{if(basketStart>=0&&i<=basketStart)return false;const p=basketNameFromLine(s);if(!p||!looksLikeBasketProduct(p.name))return false;if(p.linked)return true;
   const n=basketNameFromLine(before[i+1]||'');const next=before.slice(i+1,i+10);
   return (n&&looksLikeBasketProduct(n.name)&&sameBasketTitle(p,n)&&next.some(x=>/^£\s*\d/.test(x)))||
    /^£\s*\d/.test(before[i+1]||'')||(/^[1-9]\d{0,2}$/.test(before[i+1]||'')&&!/^(?:for|x|pack)$/i.test(before[i+2]||'')&&before.slice(i+2,i+5).some(x=>/^£\s*\d/.test(x)));
@@ -8854,7 +8855,7 @@ function detectBasket(listText){
  const firstName=products[0]?.name;let first=before.findIndex(x=>{const p=basketNameFromLine(x);return p&&p.name===firstName;});if(first<0)first=0;
  const head=before.slice(0,first),linkedCount=head.join('\n').match(/\[(\d+)\]\(https?:\/\/(?:www\.)?iceland\.co\.uk\/basket\/?\)/i);
  let expected=linkedCount?+linkedCount[1]:null;
- if(expected===null&&head.some(x=>/your delivery|search groceries|shopping basket/i.test(x))){const value=head.find(x=>/^\d{1,3}$/.test(x));if(value)expected=+value;}
+ if(expected===null){const count=head.join(' ').match(/(?:^|\s)(\d{1,3})\s+items?\s+in\s+your\s+basket/i);if(count)expected=+count[1];}
  const basketHeader=expected!==null||head.some(s=>/your delivery|items? (?:is|are) no longer available/i.test(s));
  return {products,expected,uncertain:products.filter(p=>p.uncertain).length,stopped,mode:catalogue&&!explicit&&!basketHeader?'catalogue':'basket'};
 }
@@ -9799,6 +9800,9 @@ SHOP_DEALS["MONSTER 2 FOR £10"]=[["Choose any 2 qualifying Monster four-packs",
 ]]];
 // Deal expiry information supplied with the 22 October handover.
 // Items remain inspectable in this offline preview; a past dated deal is not offered as current.
+// A frozen item cannot appear under the superseded 10 for £10 freezer offer.
+const frozenEightCodes=new Set((SHOP_DEALS['FROZEN 8 FOR £10']||[]).flatMap(step=>step[2].map(product=>product[1]).filter(Boolean)));
+for(const step of SHOP_DEALS['10 FOR £10']||[])step[2]=step[2].filter(product=>!frozenEightCodes.has(product[1]));
 const DEAL_LAST_DAYS={
  'TRICKY BITS MEAL DEAL — £15':'2026-11-05',
  'BURGER BAR — £10':'2026-11-06','CHICKEN SHACK — £10':'2026-11-06',
@@ -9812,7 +9816,7 @@ const isPastDeal=name=>{
  return today>last;
 };
 const dealChoiceMap=new Map();
-for(const name of Object.keys(SHOP_DEALS))$('dealSelect').add(new Option(name,name));
+for(const name of Object.keys(SHOP_DEALS))if(!['CHICKEN SHACK — £10','GREGGS 5 FOR £13','TRICKY BITS MEAL DEAL — £15','£5 HALLOWEEN BONFIRE BANGERS MEAL DEAL','£10 LAUNDRY BUNDLE'].includes(name))$('dealSelect').add(new Option(name,name));
 $('dealSelect').onchange=()=>{dealChoiceMap.clear();renderDealRows();};
 function renderDealRows(){
  const name=$('dealSelect').value, steps=SHOP_DEALS[name]||[],$steps=$('dealSteps');
