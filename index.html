@@ -224,9 +224,20 @@
 <div class="searchwrap"><input class="search" id="search" type="search" autocomplete="off" placeholder="Search product name or Iceland code" aria-label="Product search"><div id="suggestions" class="suggestions" role="listbox" hidden></div></div>
 <div class="search-qty"><label for="searchQty"><strong>QTY</strong></label><input type="text" id="searchQty" value="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Quantity of selected product"><button id="addBtn" class="add-search-product" type="button" aria-label="Add selected product to shop">🛒 ADD TO SHOP</button></div>
 <!-- TRUSTED TEST 2026-11-05 22:00 Europe/London: speech experiment only; restore branch trusted-test-2026-11-05-before-voice -->
+<style>
+#voiceTestStart{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+#voiceTestStart.is-listening:disabled{opacity:1}
+#voiceTestStart .voice-wave{display:none;align-items:center;justify-content:center;gap:2px;height:18px;flex:none}
+#voiceTestStart.is-listening .voice-wave{display:inline-flex}
+#voiceTestStart .voice-wave i{display:block;width:3px;height:14px;border-radius:3px;background:#fff;animation:voice-wave 850ms ease-in-out infinite alternate}
+#voiceTestStart .voice-wave i:nth-child(2),#voiceTestStart .voice-wave i:nth-child(4){animation-delay:-480ms}
+#voiceTestStart .voice-wave i:nth-child(3){animation-delay:-280ms}
+@keyframes voice-wave{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){#voiceTestStart .voice-wave i{animation:none;height:8px}}
+</style>
 <div id="voiceTestPanel" style="padding:10px 12px;margin:7px 0;border:2px dashed #d3a020;border-radius:13px;background:#fffaf0;color:#35234d">
 <div style="display:flex;align-items:center;gap:9px;margin:0 0 8px"><span aria-hidden="true" style="display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:50%;background:#ffedbf;font-size:21px">🎙️</span><div style="min-width:0"><strong style="display:block;color:#40225f;font-size:18px;line-height:1.1">VOICE MY CHOICE</strong><span style="display:block;font-size:11px;line-height:1.2;color:#665276;margin-top:2px">Speak your shopping list and add items as you go.</span></div></div>
-<div style="display:flex;gap:8px;flex-wrap:nowrap;margin:6px 0"><button type="button" id="voiceTestStart" style="flex:1 1 auto;min-width:0;min-height:42px;padding:7px 8px;background:linear-gradient(135deg,#7846a0,#43206b);color:#fff;border:0;border-radius:9px;font-size:13px;font-weight:800">🎤 START VOICE LIST</button><button type="button" id="voiceTestStop" disabled style="flex:0 0 auto;min-height:42px;padding:7px 12px;border:1px solid #bdb4c5;border-radius:9px;background:#f4f0f6;color:#40225f;font-size:13px;font-weight:800">■ STOP</button></div>
+<div style="display:flex;gap:8px;flex-wrap:nowrap;margin:6px 0"><button type="button" id="voiceTestStart" style="flex:1 1 auto;min-width:0;min-height:42px;padding:7px 8px;background:linear-gradient(135deg,#7846a0,#43206b);color:#fff;border:0;border-radius:9px;font-size:13px;font-weight:800"><span class="voice-label">🎤 START VOICE LIST</span><span class="voice-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button><button type="button" id="voiceTestStop" disabled style="flex:0 0 auto;min-height:42px;padding:7px 12px;border:1px solid #bdb4c5;border-radius:9px;background:#f4f0f6;color:#40225f;font-size:13px;font-weight:800">■ STOP</button></div>
 <div style="font-size:11px;line-height:1.25;color:#405239;margin:6px 0 3px">✓ Start and stop anytime — you can continue adding items as you go.</div>
 <div id="voiceTestStatus" role="status" aria-live="polite" style="font-size:11px;line-height:1.25;color:#4a3e54">Ready to listen.</div>
 </div>
@@ -10036,11 +10047,12 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
  if(!SpeechRecognition){start.disabled=true;status.textContent='Voice recognition is unavailable in this browser. Try Chrome and allow microphone access.';return;}
  let recognition=null,active=false,commandIssued=false,restartTimer=null;
  const setStatus=t=>{status.textContent=t;};
+ const showListening=on=>{start.classList.toggle('is-listening',on);start.querySelector('.voice-label').textContent=on?'🎤 LISTENING':'🎤 START VOICE LIST';};
  const append=t=>{t=t.trim();if(!t)return;input.value+=(input.value.trim()?'\n':'')+t;input.dispatchEvent(new Event('input',{bubbles:true}));};
  const stopListening=()=>{
   active=false;clearTimeout(restartTimer);restartTimer=null;
   const previous=recognition;recognition=null;
-  start.disabled=false;stop.disabled=true;
+  start.disabled=false;stop.disabled=true;showListening(false);
   if(previous){try{previous.abort();}catch(e){try{previous.stop();}catch(_) {}}}
  };
  const listen=()=>{
@@ -10067,7 +10079,7 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
   try{current.start();}catch(e){stopListening();setStatus('Could not start microphone: '+e.message);}
  };
  start.addEventListener('click',()=>{
-  if(active)return;active=true;commandIssued=false;start.disabled=true;stop.disabled=false;
+  if(active)return;active=true;commandIssued=false;start.disabled=true;stop.disabled=false;showListening(true);
   setStatus('Listening… say products, then “create walkthrough”.');listen();
  });
  stop.addEventListener('click',()=>{if(!active)return;stopListening();setStatus('Stopped. Your dictated products remain in the list.');});
