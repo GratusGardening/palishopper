@@ -10029,31 +10029,48 @@ try{const saved=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGAC
 
 </script>
 <script>
-/* INDEXTEST-only voice recognition experiment. No changes to product data or live app. */
+/* Voice list input. Keep the controls in sync with the browser's speech lifecycle. */
 (function(){
  const start=document.getElementById('voiceTestStart'),stop=document.getElementById('voiceTestStop'),status=document.getElementById('voiceTestStatus'),input=document.getElementById('inputlist');
  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SpeechRecognition){start.disabled=true;status.textContent='Voice recognition is unavailable in this browser. Open PALiSHoPPER in Chrome and try again.';return;}
- let recognition=null,active=false,commandIssued=false;
+ if(!SpeechRecognition){start.disabled=true;status.textContent='Voice recognition is unavailable in this browser. Try Chrome and allow microphone access.';return;}
+ let recognition=null,active=false,commandIssued=false,restartTimer=null;
  const setStatus=t=>{status.textContent=t;};
  const append=t=>{t=t.trim();if(!t)return;input.value+=(input.value.trim()?'\n':'')+t;input.dispatchEvent(new Event('input',{bubbles:true}));};
- const stopListening=()=>{active=false;start.disabled=false;stop.disabled=true;if(recognition)recognition.stop();};
- start.addEventListener('click',()=>{
-  if(active)return;recognition=new SpeechRecognition();recognition.lang='en-GB';recognition.continuous=true;recognition.interimResults=false;active=true;commandIssued=false;start.disabled=true;stop.disabled=false;setStatus('Listening… say products, then “create walkthrough”.');
-  recognition.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){
+ const stopListening=()=>{
+  active=false;clearTimeout(restartTimer);restartTimer=null;
+  const previous=recognition;recognition=null;
+  start.disabled=false;stop.disabled=true;
+  if(previous){try{previous.abort();}catch(e){try{previous.stop();}catch(_) {}}}
+ };
+ const listen=()=>{
+  if(!active)return;
+  const current=new SpeechRecognition();recognition=current;
+  current.lang='en-GB';current.continuous=true;current.interimResults=false;
+  current.onresult=e=>{if(!active||recognition!==current)return;for(let i=e.resultIndex;i<e.results.length;i++){
    if(!e.results[i].isFinal)continue;let t=e.results[i][0].transcript.trim();
-   const command=/\\b(?:create|make|build)\\s+(?:the\\s+|my\\s+|a\\s+)?(?:shop\\s+)?walk\\s*through\\b/i;
+   const command=/\b(?:create|make|build)\s+(?:the\s+|my\s+|a\s+)?(?:shop\s+)?walk\s*through\b/i;
    if(command.test(t)){
-    let before=t.slice(0,t.search(command)).replace(/[,.\\s]+$/,'');append(before);
+    let before=t.slice(0,t.search(command)).replace(/[,.\s]+$/,'');append(before);
     if(!commandIssued){commandIssued=true;stopListening();setStatus('Voice command recognised: creating walkthrough.');document.getElementById('createBtn').click();}return;
    }
    append(t);setStatus('Added: '+t+' — still listening.');
   }};
-  recognition.onerror=e=>{setStatus('Microphone / speech error: '+e.error+'. Try Chrome and allow microphone access.');stopListening();};
-  recognition.onend=()=>{if(active){active=false;start.disabled=false;stop.disabled=true;setStatus('Listening stopped by browser. Press START VOICE LIST to continue.');}};
-  try{recognition.start();}catch(e){setStatus('Could not start microphone: '+e.message);stopListening();}
+  current.onerror=e=>{if(!active||recognition!==current)return;
+   if(e.error==='no-speech')return;
+   stopListening();setStatus('Microphone / speech error: '+e.error+'. Try Chrome and allow microphone access.');
+  };
+  current.onend=()=>{if(!active||recognition!==current)return;
+   recognition=null;setStatus('Listening… speak your next product, or press STOP.');
+   restartTimer=setTimeout(()=>{restartTimer=null;listen();},300);
+  };
+  try{current.start();}catch(e){stopListening();setStatus('Could not start microphone: '+e.message);}
+ };
+ start.addEventListener('click',()=>{
+  if(active)return;active=true;commandIssued=false;start.disabled=true;stop.disabled=false;
+  setStatus('Listening… say products, then “create walkthrough”.');listen();
  });
- stop.addEventListener('click',()=>{stopListening();setStatus('Stopped. Your dictated products remain in the list.');});
+ stop.addEventListener('click',()=>{if(!active)return;stopListening();setStatus('Stopped. Your dictated products remain in the list.');});
 })();
 </script>
 </body></html>
